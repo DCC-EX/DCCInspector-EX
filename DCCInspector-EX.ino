@@ -645,14 +645,17 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
   byte decoderType; //0=Loc, 1=Acc
   unsigned int decoderAddress;
   byte speed;
+  bool outputDecodedData = false;
 
   char tempBuffer[100];
   StringBuilder sbTemp(tempBuffer, sizeof(tempBuffer));
 
   // First determine the decoder type and address.
   if (dccPacket[inputPacket][1]==B11111111) { //Idle packet
-    if (isDifferentPacket)
+    if (isDifferentPacket) {
       sbTemp.print(F("Idle "));
+      outputDecodedData = true;
+    }
     decoderType = 255;
   } else if (!bitRead(dccPacket[inputPacket][1],7)) { //bit7=0 -> Loc Decoder Short Address
     decoderAddress = dccPacket[inputPacket][1];
@@ -697,6 +700,7 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
         sbTemp.print(F(" Asp "));
         sbTemp.print(dccPacket[inputPacket][3],BIN);
       }
+      outputDecodedData = true;
     }
   }
   else if (decoderType == 0)  { // Loco / Multi Function Decoder
@@ -856,25 +860,27 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
             }
           }
         break;
-      }      
+      } 
+      outputDecodedData = true;
     }
   }
 
-  // Append packet bits.
-  sbTemp.setPos(21);
-  sbTemp.print(' ');
-  printPacketBits(sbTemp, inputPacket);
-  sbTemp.end();  // terminate string in buffer.
+  if (outputDecodedData) {
+    sbTemp.setPos(21);
+    sbTemp.print(' ');
+    printPacketBits(sbTemp, inputPacket);
+    sbTemp.end();  // terminate string in buffer.
 
-  // Get reference to buffer containing results.
-  char *decodedPacket = sbTemp.getString();
+    // Get reference to buffer containing results.
+    char *decodedPacket = sbTemp.getString();
 
-  // Append decoded packet data to string buffer.
-  sbPacketDecode.println(decodedPacket);
-  sbPacketDecode.end();
+    // Append decoded packet data to string buffer.
+    sbPacketDecode.println(decodedPacket);
+    sbPacketDecode.end();
 
-  // Also print to USB serial, and dump packet in hex.
-  Serial.println(decodedPacket);
+    // Also print to USB serial, and dump packet in hex.
+    Serial.println(decodedPacket);
+  }
 }
 
 //=======================================================================
