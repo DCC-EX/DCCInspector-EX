@@ -59,7 +59,7 @@ public:
   //  I couldn't find a way of retrieving the current ICP timer value, only the captured one.
   //  Until I can find one, here's a work-around that uses the micros() function.  It's not 
   //  used for timing events, so isn't particularly critical.
-  unsigned long IRAM_ATTR elapsedTicksSinceLastEvent() {
+  inline unsigned long IRAM_ATTR elapsedTicksSinceLastEvent() {
     return (micros() - thisEventMicros) * TICKSPERMICROSEC;
   };
 
@@ -94,13 +94,13 @@ public:
 
   // Utility function to return the number of timer ticks per microsecond.  
   // On the ESP32, this is normally 80 but can be adjusted through a prescaler.
-  unsigned int ticksPerMicrosec() {
+  inline unsigned int ticksPerMicrosec() {
     return TICKSPERMICROSEC;
   };
 
   // Utility function to inform whether input capture is in use or not.  For this
   //  version, it always returns true.
-  bool inputCaptureMode() { return true; };
+  inline bool inputCaptureMode() { return true; };
 
 private:
   EventHandler *callUserHandler = 0;

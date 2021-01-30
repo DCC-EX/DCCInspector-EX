@@ -56,7 +56,7 @@ public:
   // Utility function to give number of ticks since the last event.  Useful 
   //  for determining how much time has elapsed within the interrupt handler since
   //  the interrupt was triggered.
-  unsigned long INTERRUPT_SAFE elapsedTicksSinceLastEvent() {
+  inline unsigned long INTERRUPT_SAFE elapsedTicksSinceLastEvent() {
     return micros() - thisEventTicks;
   };
   
@@ -64,7 +64,7 @@ public:
   //  and to invoke the user program's handler.  The user's handler is passed the 
   //  number of ticks elapsed since the last valid interrupt.  It returns true/false to 
   //  indicate if this interrupt is deemed to be 'valid' or not.
-   void INTERRUPT_SAFE processInterrupt(unsigned long thisEventTicks) {
+  void INTERRUPT_SAFE processInterrupt(unsigned long thisEventTicks) {
     this->thisEventTicks = thisEventTicks;
     unsigned long eventSpacing = thisEventTicks - lastValidEventTicks;
     bool accepted = callUserHandler(eventSpacing);
@@ -75,13 +75,13 @@ public:
 
   // Utility function to return the number of timer ticks per microsecond.  
   //  With millis() as a counter, this is always 1.
-  unsigned int ticksPerMicrosec() {
+  inline unsigned int ticksPerMicrosec() {
     return TICKSPERMICROSEC;
   };
 
   // Utility function to inform whether input capture is in use or not.  For this
   //  version, it always returns false.
-  bool inputCaptureMode() { return false; };
+  inline bool inputCaptureMode() { return false; };
 
 private:
   EventHandler *callUserHandler = 0;

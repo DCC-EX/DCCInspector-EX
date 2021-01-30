@@ -14,6 +14,12 @@
 #include "OledDisplay.h"
 #include "DccStatistics.h"
 
+#if defined(ESP32) 
+  #define PLATFORM "ESP32"
+#elif defined(ESP8266)
+  #define PLATFORM "ESP8266"
+#endif
+
 // Buffer pointer reference.  This is the buffer of dynamic text sent to the web server client.
 static char *bufferPointer = 0;
 // Web server object.
@@ -40,7 +46,7 @@ static void handleRoot() {
       "</head>\r\n"
       "<body>\r\n"
         "<h1>DCC Diagnostics</h1>\r\n"
-        "<p>Diagnostic information from ESP32 server:</p>"
+        "<p>Diagnostic information from " PLATFORM " server:</p>"
         "<p><iframe id=\"data\" src=\"/data\" width=500 "
         "   onload=\"this.style.height=(this.contentWindow.document.body.scrollHeight)+'px';\">"
         "</iframe></p>\r\n"
@@ -325,11 +331,17 @@ void HttpManagerClass::writeHtmlStatistics(Statistics &lastStats,
   sbHtml.print(cellDiv);
   sbHtml.print(lastStats.glitchCount);
   sbHtml.print(rowEnd);
-  
+
   sbHtml.print(rowStart);
-  sbHtml.print(F("Total Packets Received"));
+  sbHtml.print(F("Valid Packets Received"));
   sbHtml.print(cellDiv);
   sbHtml.print(lastStats.packetCount);
+  sbHtml.print(rowEnd);
+
+  sbHtml.print(rowStart);
+  sbHtml.print(F("NMRA out of spec packets"));
+  sbHtml.print(cellDiv);
+  sbHtml.print(lastStats.outOfSpecRejectionCount);
   sbHtml.print(rowEnd);
 
   sbHtml.print(rowStart);

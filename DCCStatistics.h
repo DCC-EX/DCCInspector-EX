@@ -28,6 +28,7 @@ typedef struct {
   unsigned int refreshTime;
   unsigned long count=0, count0=0, count1=0;
   unsigned int packetCount=0, checksumError=0, countLongPackets=0, countLostPackets=0;
+  unsigned int outOfSpecRejectionCount = 0;
   unsigned int max1=0, min1=65535, max0=0, min0=65535;
   unsigned long total1=0, total0=0, totalInterruptTime=0;
   unsigned int maxInterruptTime=0, minInterruptTime=65535;
@@ -45,23 +46,49 @@ public:
   //  of the DCC bit; and interruptInterval is the microsecond time between
   //  successive interrupts (the length of the half-bit in DCC terms).
   void INTERRUPT_SAFE recordHalfBit(byte altbit, byte bitValue, unsigned int interruptInterval, unsigned int delta);
-  void INTERRUPT_SAFE recordLostPacket();
-  void INTERRUPT_SAFE recordLongPacket();
-  void INTERRUPT_SAFE recordPacket();
-  void INTERRUPT_SAFE recordChecksumError();
-  void INTERRUPT_SAFE recordInterruptHandlerTime(unsigned int interruptDuration);
-  void INTERRUPT_SAFE recordGlitch();
+  inline void INTERRUPT_SAFE recordLostPacket() {
+    activeStats.countLostPackets++;
+  }
+  inline void INTERRUPT_SAFE recordLongPacket()  {
+    activeStats.countLongPackets++;
+  }
+  inline void INTERRUPT_SAFE recordPacket() {
+    activeStats.packetCount++;
+  }
+  inline void INTERRUPT_SAFE recordChecksumError() {
+    activeStats.checksumError++;
+  }
+  inline void INTERRUPT_SAFE recordOutOfSpecRejection() {
+    activeStats.outOfSpecRejectionCount++;
+  }
+  inline void INTERRUPT_SAFE recordInterruptHandlerTime(unsigned int interruptDuration) {
+    if (interruptDuration > activeStats.maxInterruptTime) activeStats.maxInterruptTime = interruptDuration;
+    if (interruptDuration < activeStats.minInterruptTime) activeStats.minInterruptTime = interruptDuration;
+    activeStats.totalInterruptTime += interruptDuration;
+  }
+  inline void INTERRUPT_SAFE recordGlitch() {
+    activeStats.glitchCount++;
+  }
 
-  void updateLoopCount();
-  bool faultPresent();
+  inline void updateLoopCount() {
+    activeStats.spareLoopCount++; 
+  }
+  inline bool faultPresent() {
+    if (activeStats.glitchCount > 0 || activeStats.checksumError > 0 || 
+        activeStats.countLongPackets > 0 || activeStats.countLostPackets > 0
+        || activeStats.outOfSpecRejectionCount > 0)
+        return true;
+    else
+        return false;
+  }
   void writeFullStatistics(Statistics &stats, bool showCpuStats, bool showBitLengths);
   void writeShortStatistics(Print &output);
   
   // Return a copy of the current set of statistics accumulated.
   Statistics getAndClearStats();
 
-  unsigned int getRefreshTime() { return refreshTime; }
-  void setRefreshTime(unsigned int value) { refreshTime = value; }
+  inline unsigned int getRefreshTime() { return refreshTime; }
+  inline void setRefreshTime(unsigned int value) { refreshTime = value; }
 
 private:
   unsigned long maxSpareLoopCountPerSec = 0; // baseline for CPU load calculation

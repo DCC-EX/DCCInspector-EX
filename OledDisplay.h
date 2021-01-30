@@ -36,9 +36,7 @@ public:
   //  Connects to the OLED display and puts it into a 
   //  suitable mode.
   bool begin(int sdaPin, int sclPin);
-  void reset() {  
-    sbOled.reset(); 
-  }
+  inline void reset() { sbOled.reset(); }
 
   // Function called to force an update of the screen,
   //  starting with the line referenced by 'firstLine'.

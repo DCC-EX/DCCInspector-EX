@@ -31,45 +31,6 @@ void INTERRUPT_SAFE DCCStatisticsClass::recordHalfBit(byte altbit, byte bitValue
     activeStats.countByLength[altbit][interruptInterval - minBitLength]++;
 }
 
-void INTERRUPT_SAFE DCCStatisticsClass::recordLostPacket() {
-    activeStats.countLostPackets++;
-}
-
-void INTERRUPT_SAFE DCCStatisticsClass::recordLongPacket() {
-    activeStats.countLongPackets++;
-}
-
-void INTERRUPT_SAFE DCCStatisticsClass::recordPacket() {
-    activeStats.packetCount++;
-}
-
-void INTERRUPT_SAFE DCCStatisticsClass::recordChecksumError() {
-    activeStats.checksumError++;
-}
-
-void INTERRUPT_SAFE DCCStatisticsClass::recordInterruptHandlerTime(unsigned int interruptDuration) {
-    if (interruptDuration > activeStats.maxInterruptTime) activeStats.maxInterruptTime = interruptDuration;
-    if (interruptDuration < activeStats.minInterruptTime) activeStats.minInterruptTime = interruptDuration;
-    activeStats.totalInterruptTime += interruptDuration;
-}
-
-void INTERRUPT_SAFE DCCStatisticsClass::recordGlitch() {
-    activeStats.glitchCount++;
-}
-
-void DCCStatisticsClass::updateLoopCount() {
-    activeStats.spareLoopCount++; 
-}
-
-bool DCCStatisticsClass::faultPresent() {
-    if (activeStats.glitchCount > 0 || activeStats.checksumError > 0 || 
-        activeStats.countLongPackets > 0 || activeStats.countLostPackets > 0)
-        return true;
-    else
-        return false;
-}
-
-
 //=======================================================================
 // WriteFullStatistics writes the statistics to Serial stream.
 //
@@ -87,15 +48,17 @@ void DCCStatisticsClass::writeFullStatistics(Statistics &stats, bool showCpuStat
     Serial.print(F("), Glitches="));
     Serial.println(stats.glitchCount);
 
-    Serial.print(F("Packets received="));
+    Serial.print(F("Valid Packets="));
     Serial.print(stats.packetCount);
-    Serial.print(F(", Checksum Error="));
+    Serial.print(F(", NMRA out of spec="));
+    Serial.print(stats.outOfSpecRejectionCount);
+    Serial.print(F(", Checksum Errors="));
     Serial.print(stats.checksumError);
     Serial.print(F(", Lost pkts="));
     Serial.print(stats.countLostPackets);
     Serial.print(F(", Long pkts="));
     Serial.println(stats.countLongPackets);
-
+    
     Serial.print(F("0 half-bit length (us): "));
     if (stats.min0 <= stats.max0) {
         Serial.print((float)stats.total0/stats.count0,1);

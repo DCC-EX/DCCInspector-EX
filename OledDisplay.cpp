@@ -125,6 +125,9 @@ void OledDisplayClass::writeShortStatistics(Statistics &lastStats) {
         
         sbOled.print(F("CksumErr: "));
         sbOled.println(lastStats.checksumError);
+        
+        sbOled.print(F("NMRA Reject: "));
+        sbOled.println(lastStats.outOfSpecRejectionCount);
         sbOled.println(F("--"));
         
     } else {
@@ -138,6 +141,7 @@ void OledDisplayClass::writeShortStatistics(Statistics &lastStats) {
         "Deltas: N/A\n"
         "Frames: 0\n"
         "CksumErr: 0\n"
+        "NMRA Reject: 0\n"
         "--"));
     }
     sbOled.end();

@@ -94,7 +94,7 @@ public:
   // Utility function to give number of ticks since the last event.  Useful 
   //  for determining how much time has elapsed within the interrupt handler since
   //  the interrupt was triggered.
-  unsigned long elapsedTicksSinceLastEvent() {
+  inline unsigned long elapsedTicksSinceLastEvent() {
     return (unsigned int)(TCNTn - thisEventTicks);
   };
   
@@ -130,13 +130,13 @@ public:
 
   // Utility function to return the number of timer ticks per microsecond.  
   //   On the AtMega, this is 2 or 16, depending on the timer pre-scaler setting.
-  unsigned int ticksPerMicrosec() {
+  inline unsigned int ticksPerMicrosec() {
     return TICKSPERMICROSEC;
   };
 
   // Utility function to inform whether input capture is in use or not.  For this
   //  version, it always returns true.
-  bool inputCaptureMode() { return true; };
+  inline bool inputCaptureMode() { return true; };
 
 private:
   EventHandler *callUserHandler = 0;
