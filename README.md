@@ -1,4 +1,4 @@
-# DCC-Inspector EX
+# DccInspector-EX
 
 ## Summary
 
@@ -21,18 +21,15 @@ DCC++ or DCC++ EX system.  If it is used to monitor DCC signals, which are
 normally bipolar 12-18V signals, an optocoupler circuit will be required.
 
 Various circuits are discussed on the internet, but if you use a 6N137 optocoupler I 
-would recommend a 100nF capacitor across the DCC input to stabilise the DCC input signal.  
-Without this the opto-isolator may experience ringing,
-causing fleeting interrupts on the input (recorded as 'glitches' in the diagnostics).
-Commercial DCC controllers may include a similar capacitor, but the Arduino-based DCC++ and DCC++ EX 
-systems do not normally have this.
+would recommend a 1nF capacitor across the optocoupler input to stabilise the DCC input signal.  
+Without this the opto-isolator may experience ringing, causing fleeting interrupts on the input 
+(recorded as 'glitches' in the diagnostics).
 
 I use a pull-up resistor of 470 ohms (labelled R3 below) on the output pin 6, connected to 5V; 
-a larger resistor (even the Arduino's internal pull-up)
-will generally still work but will slow down the optocoupler.  Using the internal pull-up (~25Kohm), 
-deltas of 9us on the Arduino and 17us on the ESP32 are measured between half-bit lengths, 
-compared to <1us with a 470 (or 330) ohm pull-up.  This may be acceptable in a decoder with fairly loose 
-timing requirements, but it is not appropriate for a diagnostic tool.
+a larger resistor (even the Arduino's internal pull-up) will generally still work but may slow 
+down the optocoupler.  Using the internal pull-up (~25Kohm), the rise-time on the signal is some microseconds 
+in length, compared to around 200ns with a 470 (or 330) ohm pull-up.  This may be acceptable in a decoder where the
+timing requirements may be relaxed, but a faster response is preferred for a diagnostic tool.
 
 No connection is necessary to pin 7, although some versions of the circuit show a pull-up resistor here.
 
