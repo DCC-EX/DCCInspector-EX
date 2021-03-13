@@ -33,7 +33,7 @@ timing requirements may be relaxed, but a faster response is preferred for a dia
 
 No connection is necessary to pin 7, although some versions of the circuit show a pull-up resistor here.
 
-![Recommended Optocoupler Circuit](DCC-Isolator-6N137.png "Recommended Optocoupler Circuit")
+![Recommended Optocoupler Circuit](assets/DCC-Isolator-6N137.png "Recommended Optocoupler Circuit")
 
 Strictly, the 6N137 isn't rated for the 3.3V supply used on an ESP8266 or ESP32.
 I've had good results running with the circuit shown above with a 3.3V supply (replacing R3 with 330 ohm), 
@@ -73,7 +73,7 @@ router using WPS protocol.   Press the WPS button on the router before resetting
 the device should connect to the router.  When the device is reset or started in future, it will 
 connect using the same credentials by preference.
 
-![Example of output in web browser](WebInterface.PNG "Example of web output")
+![Example of output in web browser](assets/WebInterface.PNG "Example of web output")
 
 ## Serial USB Output
 
