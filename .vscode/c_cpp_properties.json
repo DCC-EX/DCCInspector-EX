@@ -59,7 +59,6 @@
                 "C:/Users/neil_/.platformio/packages/framework-arduinoespressif32/tools/sdk/include/mqtt",
                 "C:/Users/neil_/.platformio/packages/framework-arduinoespressif32/tools/sdk/include/newlib",
                 "C:/Users/neil_/.platformio/packages/framework-arduinoespressif32/tools/sdk/include/nghttp",
-                "C:/Users/neil_/.platformio/packages/framework-arduinoespressif32/tools/sdk/include/nimble",
                 "C:/Users/neil_/.platformio/packages/framework-arduinoespressif32/tools/sdk/include/nvs_flash",
                 "C:/Users/neil_/.platformio/packages/framework-arduinoespressif32/tools/sdk/include/openssl",
                 "C:/Users/neil_/.platformio/packages/framework-arduinoespressif32/tools/sdk/include/protobuf-c",
@@ -163,7 +162,6 @@
                     "C:/Users/neil_/.platformio/packages/framework-arduinoespressif32/tools/sdk/include/mqtt",
                     "C:/Users/neil_/.platformio/packages/framework-arduinoespressif32/tools/sdk/include/newlib",
                     "C:/Users/neil_/.platformio/packages/framework-arduinoespressif32/tools/sdk/include/nghttp",
-                    "C:/Users/neil_/.platformio/packages/framework-arduinoespressif32/tools/sdk/include/nimble",
                     "C:/Users/neil_/.platformio/packages/framework-arduinoespressif32/tools/sdk/include/nvs_flash",
                     "C:/Users/neil_/.platformio/packages/framework-arduinoespressif32/tools/sdk/include/openssl",
                     "C:/Users/neil_/.platformio/packages/framework-arduinoespressif32/tools/sdk/include/protobuf-c",
@@ -215,7 +213,7 @@
                 ]
             },
             "defines": [
-                "PLATFORMIO=50100",
+                "PLATFORMIO=50101",
                 "ARDUINO_HELTEC_WIFI_KIT_32",
                 "ESP32",
                 "ESP_PLATFORM",

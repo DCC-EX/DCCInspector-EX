@@ -97,7 +97,61 @@ Likewise, the CPU statistics are not displayed by default, press 'C' to enable t
 
 ## Example Output On Serial USB
 
-### Examples of Uno Monitoring DCC++ Classic (5V direct connection, Main Track, Strict NMRA):
+### Example Uno Monitoring DCC++ EX 3.0.10 (5V, 6N137 Optocoupler, Main Track, Strict NMRA):
+All DCC packets are within the NMRA specification
+and the pulse lengths are always within 1us of the target lengths of 116us and 58us.
+
+This demonstrates the improvements in pulse quality which were introduced in DCC++EX in 
+version 3.0.5 when running on an ATmega2560 board with standard motor pins, compared to the pulse lengths
+measured for the DCC++EX version 3.0.4 below.  It is achieved by using the Arduino's
+hardware PWM capabilities to generate the pulse transitions; this is accurate to one clock cycle,
+i.e. 1/16th of a microsecond, although the measurement accuracy is reduced slightly by the optocoupler circuit.
+
+```
+-
+Bit Count/4 sec=25621 (Zeros=9134, Ones=16486), Glitches=0
+Valid Packets=446, NMRA out of spec=0, Checksum Errors=0, Lost pkts=0, Long pkts=0
+0 half-bit length (us): 115.9 (115-116) delta < 1
+1 half-bit length (us): 57.9 (57-58) delta < 1
+------ Half-bit count by length (us) -------
+57	3218	0
+58	13270	16490
+115	2444	150
+116	6690	8984
+--------------------------------------------
+--
+Loc 3 Rev128 25         00000011 00111111 00011010
+Loc 7979 Fwd128 122     11011111 00101011 00111111 11111011
+-
+```
+
+### Example ESP32 Monitoring DCC++ EX 3.0.4 (5V, 6N137 Optocoupler, Main Track, Strict NMRA)
+When the DCC signal is generated within interrupt handling code within the Command Station, the accuracy of 
+the signal cannot be maintained to such a high accuracy.  Below, we can see that the pulse length varies over a range of around 14us.  
+This would mean that some packets are outside of the NMRA specification and may be ignored by the loco decoder.
+The analyser reports 81 packets as out of spec and 351 in-spec, i.e. around 20% are out of spec.  This is not 
+normally a problem on a DCC layout as each packet is transmitted at least three times.  If one packet doesn't get 
+through, the probability is that one of the retransmissions will!
+
+The half-bit counts are turned off here, but CPU monitoring within the analyser is turned on.
+
+```
+-
+Bit Count/4 sec=24865 (Zeros=10167, Ones=14697), Glitches=0
+Valid Packets=351, NMRA out of spec=81, Checksum Errors=0, Lost pkts=0, Long pkts=0
+0 half-bit length (us): 115.9 (109-122) delta < 14
+1 half-bit length (us): 57.5 (51-64) delta < 14
+IRC Duration (us): 2.2 (1-10),  CPU load: 27.5%
+--
+Loc 7552 Fwd128 33      11011101 10000000 00111111 10100010
+Loc 3 Fwd128 25         00000011 00111111 10011010
+-
+```
+
+### Example Uno Monitoring DCC++ Classic (5V direct connection, Main Track, Strict NMRA):
+The original DCC++ Classic also uses the hardware PWM capabilities of the Arduino to generate the 
+DCC pulse transitions.  This is capable of accuracy to within one clock cycle, as demonstrated in
+the results below.
 
 ```
 -
@@ -116,77 +170,6 @@ Loc 2323 Fwd128 5       11001001 00010011 00111111 10000110
 -
 ```
 
-### Example Uno Monitoring DCC++ EX (5V direct connection, Main Track, Strict NMRA):
-
-```
--
-Bit Count/4 sec=24541 (Zeros=10028, Ones=14513), Glitches=0
-Valid Packets=366, NMRA out of spec=60, Checksum Errors=0, Lost pkts=0, Long pkts=0
-0 half-bit length (us): 115.9 (109-122) delta < 13
-1 half-bit length (us): 57.7 (51-64) delta < 13
---
-Loc 3 Fwd128 25         00000011 00111111 10011010
-Loc 7552 Fwd128 33      11011101 10000000 00111111 10100010
--
-```
-
-### Example ESP32 Monitoring DCC++ Classic (5V, 6N137 Optocoupler, Main Track, Strict NMRA):
-
-```
--
-Bit Count/4 sec=27919 (Zeros=9995, Ones=17924), Glitches=0
-Valid Packets=417, NMRA out of spec=0, Checksum Errors=0, Lost pkts=0, Long pkts=0
-0 half-bit length (us): 100.0 (100-100) delta < 1
-1 half-bit length (us): 58.0 (58-58) delta < 1
-IRC Duration (us): 2.2 (2-10),  CPU load: 32.0%
------- Half-bit count by length (us) -------
-58      17924   17924
-100     9995    9995
---------------------------------------------
---
-Loc 7801 Fwd128 55      11011110 01111001 00111111 10111000
-Loc 2323 Fwd128 5       11001001 00010011 00111111 10000110
--
-```
-
-### Example ESP32 Monitoring DCC++ EX (5V, 6N137 Optocoupler, Main Track, Strict NMRA)
-
-```
--
-Bit Count/4 sec=24865 (Zeros=10167, Ones=14697), Glitches=0
-Valid Packets=351, NMRA out of spec=81, Checksum Errors=0, Lost pkts=0, Long pkts=0
-0 half-bit length (us): 115.9 (109-122) delta < 14
-1 half-bit length (us): 57.5 (51-64) delta < 14
-IRC Duration (us): 2.2 (1-10),  CPU load: 27.5%
---
-Loc 7552 Fwd128 33      11011101 10000000 00111111 10100010
-Loc 3 Fwd128 25         00000011 00111111 10011010
--
-```
-
-### Example Uno Monitoring DCC++ EX with modified pulse generator (12V, 6N137 Optocoupler, Main Track, Strict NMRA):
-
-The DCC++ EX output here is generated using flexible timer comparator outputs; if the nominated pin can be 
-driven by a timer comparator, then it is (like DCC++ Classic); and if it can't then it's driven by a less precise 
-method using the digitalWrite() function (as in the standard DCC++ EX output routines).
-
-```
--
-Bit Count/4 sec=25832 (Zeros=8957, Ones=16875), Glitches=0
-Valid Packets=471, NMRA out of spec=0, Checksum Errors=0, Lost pkts=0, Long pkts=0
-0 half-bit length (us): 115.5 (115-116) delta < 2
-1 half-bit length (us): 57.5 (57-58) delta < 1
------- Half-bit count by length (us) -------
-57      15686   0
-58      1191    16877
-115     8946    0
-116     11      8957
---------------------------------------------
---
-Loc 8683 Fwd128 51      11100001 11101011 00111111 10110100
-Loc 8683 L F4-F1 10001   11100001 11101011 10010001
--
-```
 
 ## Command Summary
 
