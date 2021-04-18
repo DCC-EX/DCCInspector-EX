@@ -788,6 +788,7 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
       sbTemp.print(F("Loc "));
       sbTemp.print(decoderAddress);
       byte instructionType = instrByte1 >> 5;
+      byte value;
       switch (instructionType) {
         case 0:
           sbTemp.print(F(" Control"));
@@ -854,10 +855,6 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
           }
           break;
 
-        default:
-          sbTemp.print(F(" Unknown"));
-          break;
-
         case 6:  // Future Expansions
           switch (instrByte1 & 0B00011111) {
             case 0:  // Binary State Control Instruction long form
@@ -887,6 +884,26 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
               sbTemp.print(F(" F28-F21 "));
               sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
               break;
+            case 0B00011000:  // F29-F36 Function Control
+              sbTemp.print(F(" F36-F29 "));
+              sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
+              break;
+            case 0B00011001:  // F37-F44 Function Control
+              sbTemp.print(F(" F44-F37 "));
+              sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
+              break;
+            case 0B00011010:  // F45-F52 Function Control
+              sbTemp.print(F(" F52-F45 "));
+              sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
+              break;
+            case 0B00011011:  // F53-F60 Function Control
+              sbTemp.print(F(" F60-F53 "));
+              sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
+              break;
+            case 0B00011100:  // F61-F68 Function Control
+              sbTemp.print(F(" F68-F61 "));
+              sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
+              break;
             default:
               sbTemp.print(F(" Unknown"));
               break;
@@ -895,7 +912,7 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
 
         case 7:
           sbTemp.print(F(" CV "));
-          byte value = dccPacket[inputPacket][pktByteCount - 1];
+          value = dccPacket[inputPacket][pktByteCount - 1];
           if (instrByte1 & 0B00010000) {  // CV Short Form
             byte cvType = instrByte1 & 0B00001111;
             switch (cvType) {
@@ -946,6 +963,10 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
                 break;
             }
           }
+          break;
+
+        default:
+          sbTemp.print(F(" Unknown"));
           break;
       }
       outputDecodedData = true;
