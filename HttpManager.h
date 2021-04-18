@@ -60,12 +60,18 @@ class HttpManagerClass {
     }
 
   private:  
+    static void handleRoot();
+    static void processArguments();
+    static void handleNotFound();
+    static void handleData();
+    static void WiFiEvent (WiFiEvent_t event, system_event_info_t info);
     // Flag whether connected or not.
     bool connected = false; 
     // Buffer for generating HTML
     char buffer[4000] = "";
     StringBuilder sbHtml = StringBuilder(buffer, sizeof(buffer));
-
+    static char *bufferPointer;
+    static WebServer server;
 } /* class HttpManagerClass */;
 
 // Singleton class instance.

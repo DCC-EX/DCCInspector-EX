@@ -18,6 +18,7 @@
 
 ///////////////////////////////////////////////////////
 //
+// Add buttons to web page for modifying options: NMcK Apr 2021
 // Regroup functions into separate classes: NMcK Jan 2021
 // Move configuration items to config.h: NMcK Jan 2021
 // Add OLED, and web server support on ESP32: NMcK Jan 2021

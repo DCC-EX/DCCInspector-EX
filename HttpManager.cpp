@@ -22,6 +22,10 @@
  * 
  */
 
+#include <Arduino.h>
+extern byte strictMode;
+extern bool filterInput;
+
 #include "Config.h"
 
 #ifdef USE_HTTPSERVER
@@ -38,15 +42,18 @@
 #endif
 
 // Buffer pointer reference.  This is the buffer of dynamic text sent to the web server client.
-static char *bufferPointer = 0;
+char *HttpManagerClass::bufferPointer = 0;
+
 // Web server object.
-static WebServer server;
+WebServer HttpManagerClass::server;
 
 // Function to handle request for the root web page (http://server/).
 //  It sends a static web page that includes an updating IFRAME where the dynamic data
 //  will be displayed.
-static void handleRoot() {
+void HttpManagerClass::handleRoot() {
   digitalWrite(LED_BUILTIN, 1);
+  processArguments();
+  int refreshTime = DCCStatistics.getRefreshTime();
   String temp = 
     "<html>\r\n"
       "<script>\r\n"
@@ -63,25 +70,54 @@ static void handleRoot() {
       "</head>\r\n"
       "<body>\r\n"
         "<h1>DCC Diagnostics</h1>\r\n"
-        "<p>Diagnostic information from " PLATFORM " server:</p>"
+        "<p>Diagnostic information from " PLATFORM " server:</p>\r\n"
+        "<form action=\"/\" method=\"post\">\r\n"
+          "<label for=\"nmraMode\">NMRA Validation level:</label>\r\n"
+          "<select name=\"s\"> id=\"nmraMode\">\r\n"
+            "<option value=0" + String(strictMode==0 ? " selected" : "") + ">No validation</option>\r\n"
+            "<option value=1" + String(strictMode==1 ? " selected" : "") + ">Decoder (+/- 6us)</option>\r\n"
+            "<option value=2" + String(strictMode==2 ? " selected" : "") + ">Strict (+/- 3us)</option>\r\n"
+          "</select>\r\n"
+          "<br>\r\n"
+          "<label for=\"refreshTime\">Sample time</label>\r\n"
+          "<select name=\"r\"> id=\"refreshTime\">\r\n"
+            "<option value=1" + String(refreshTime==1 ? " selected" : "") + ">1 second</option>\r\n"
+            "<option value=2" + String(refreshTime==2 ? " selected" : "") + ">2 seconds</option>\r\n"
+            "<option value=4" + String(refreshTime==4 ? " selected" : "") + ">4 seconds</option>\r\n"
+            "<option value=8" + String(refreshTime==8 ? " selected" : "") + ">8 seconds</option>\r\n"
+            "<option value=16" + String(refreshTime==16 ? " selected" : "") + ">16 seconds</option\r\n>"
+            "<option value=32" + String(refreshTime==32 ? " selected" : "") + ">32 seconds</option\r\n>"
+            "<option value=64" + String(refreshTime==64 ? " selected" : "") + ">64 seconds</option\r\n>"
+          "</select>\r\n"
+          "<br>\r\n"
+          "<label for=\"filterGlitches\">Filter Input Glitches</label>\r\n"
+          "<select name=\"f\"> id=\"filterGlitches\">\r\n"
+            "<option value=0" + String(filterInput==0 ? " selected" : "") + ">Off</option>\r\n"
+            "<option value=1" + String(filterInput==1 ? " selected" : "") + ">On</option>\r\n"
+          "</select>"
+          "<br>\r\n"
+          "<button>Apply Settings</button>\r\n"
+        "</form>\r\n"
         "<p><iframe id=\"data\" src=\"/data\" width=500 "
-        "   onload=\"this.style.height=(this.contentWindow.document.body.scrollHeight)+'px';\">"
+        "   onload=\"this.style.height=(this.contentWindow.document.body.scrollHeight)+'px';\">\r\n"
         "</iframe></p>\r\n"
       "</body>\r\n"
     "</html>";
   server.send(200, "text/html", temp);
+  temp = "";  // release space held
+
   digitalWrite(LED_BUILTIN, 0);
 }
 
 // Function to handle the request for dynamic data (http://server/data).
-static void handleData() {
+void HttpManagerClass::handleData() {
   digitalWrite(LED_BUILTIN, 1);
   server.send(200, "text/html", HttpManager.getHtmlString());
   digitalWrite(LED_BUILTIN, 0);
 }
 
 // Function to handle any other requests.  Returns "404 Not Found".
-static void handleNotFound() {
+void HttpManagerClass::handleNotFound() {
   digitalWrite(LED_BUILTIN, 1);
   String message = "File Not Found\n\n";
   message += "URI: ";
@@ -100,8 +136,17 @@ static void handleNotFound() {
   digitalWrite(LED_BUILTIN, 0);
 }
 
+void HttpManagerClass::processArguments() {
+  if (server.hasArg("r"))
+    DCCStatistics.setRefreshTime(server.arg("r").toInt());
+  if (server.hasArg("s")) 
+    strictMode = server.arg("s").toInt();
+  if (server.hasArg("f"))
+    filterInput = server.arg("f").toInt();
+}
+
 #if defined(ESP32)
-void WiFiEvent (WiFiEvent_t event, system_event_info_t info) {
+void HttpManagerClass::WiFiEvent (WiFiEvent_t event, system_event_info_t info) {
   switch (event) {
     case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:
       Serial.print(F("[WPS Successful]"));
