@@ -64,7 +64,9 @@ class HttpManagerClass {
     static void processArguments();
     static void handleNotFound();
     static void handleData();
+    #if defined(ESP32)
     static void WiFiEvent (WiFiEvent_t event, system_event_info_t info);
+    #endif
     // Flag whether connected or not.
     bool connected = false; 
     // Buffer for generating HTML
