@@ -119,18 +119,17 @@ void DCCStatisticsClass::writeFullStatistics(Statistics &stats,
       Serial.print(F("-"));
       Serial.print(stats.maxInterruptTime);
       Serial.print(F(")"));
-    } else {
+    } else 
       Serial.print(F("<none>"));
 
-      // Calculate and display cpu load
-      unsigned long spareLoopCountPerSec = stats.spareLoopCount / refreshTime;
-      Serial.print(F(",  CPU load: "));
-      Serial.print(
-          100.0f * (1.0f - (float)spareLoopCountPerSec / maxSpareLoopCountPerSec),
-          1);
-      Serial.print(F("%"));
-      Serial.println();
-    }
+    // Calculate and display cpu load
+    unsigned long spareLoopCountPerSec = stats.spareLoopCount / refreshTime;
+    Serial.print(F(",  CPU load: "));
+    Serial.print(
+        100.0f * (1.0f - (float)spareLoopCountPerSec / maxSpareLoopCountPerSec),
+        1);
+    Serial.print(F("%"));
+    Serial.println();
   }
 
   if (showBitLengths) {
