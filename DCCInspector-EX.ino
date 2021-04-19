@@ -108,6 +108,7 @@
 // c = show cpu/irc usage in sniffer toggle
 // f = input filter toggle
 // s = set NMRA compliance strictness (0=none,1=decoder,2=controller)
+// i = Display IP Address
 // ? = help (show this information)
 //
 ////////////////////////////////////////////////////////
@@ -1096,6 +1097,10 @@ bool processCommands() {
         Serial.print(F("show Cpu stats = "));
         Serial.println(showCpuStats);
         break;
+      case 'i':
+      case 'I':
+        HttpManager.getIP();
+        break;
       case '?':
         Serial.println();
         Serial.println(
@@ -1120,6 +1125,7 @@ bool processCommands() {
         Serial.println(
             F("s = set NMRA compliance strictness "
               "(0=none,1=decoder,2=controller)"));
+        Serial.println(F("i = show IP Address if connected"));
         Serial.println(F("? = help (show this information)"));
         Serial.print(F("ShowLoco "));
         Serial.print(showLoc);

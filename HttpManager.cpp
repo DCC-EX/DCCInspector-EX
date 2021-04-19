@@ -294,6 +294,17 @@ void HttpManagerClass::process() {
     server.handleClient();
 }
 
+// Function to display the IP Address of the server if connected
+void HttpManagerClass::getIP() {
+  if (connected){
+    Serial.print(F("IP address: "));
+    Serial.println(WiFi.localIP());
+  }
+  else {
+    Serial.println("Not Connected!"); 
+  }
+}
+
 //=======================================================================
 // WriteHtmlStatistics writes the last set of statistics to a print stream.
 void HttpManagerClass::writeHtmlStatistics(Statistics &lastStats) 
