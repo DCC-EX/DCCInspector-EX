@@ -1098,9 +1098,11 @@ bool processCommands() {
         Serial.println(showCpuStats);
         break;
       case 'i':
+#if defined(USE_HTTPSERVER)
       case 'I':
         HttpManager.getIP();
         break;
+#endif
       case '?':
         Serial.println();
         Serial.println(
@@ -1125,7 +1127,9 @@ bool processCommands() {
         Serial.println(
             F("s = set NMRA compliance strictness "
               "(0=none,1=decoder,2=controller)"));
+#if defined(USE_HTTPSERVER)
         Serial.println(F("i = show IP Address if connected"));
+#endif
         Serial.println(F("? = help (show this information)"));
         Serial.print(F("ShowLoco "));
         Serial.print(showLoc);
