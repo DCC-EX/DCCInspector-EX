@@ -55,6 +55,8 @@ class HttpManagerClass {
     // Function to be called in loop() function to keep things going.
     void process();
     // Function to get null-terminated string containing html data.
+    void getIP();
+    // Function to get IP address if connected
     char *getHtmlString() { 
       return sbHtml.getString();
     }
