@@ -860,8 +860,8 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
             case 0:  // Binary State Control Instruction long form
               sbTemp.print(F(" BinSLong "));
               sbTemp.print(
-                  128 * (short)dccPacket[inputPacket][pktByteCount - 1] +
-                  (dccPacket[inputPacket][pktByteCount - 2] & 0B01111111));
+                  128 * ((uint16_t)dccPacket[inputPacket][pktByteCount - 1]) +
+                  (dccPacket[inputPacket][pktByteCount - 2] & 127));
               if bitRead (dccPacket[inputPacket][pktByteCount - 2], 7)
                 sbTemp.print(F(" On"));
               else
