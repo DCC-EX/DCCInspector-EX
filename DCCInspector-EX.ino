@@ -824,7 +824,7 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
           else if (speed == 255 || speed == 0)
             sbTemp.print(F(" EStop"));
           else {
-            sbTemp.print(F(" Rev "));
+            sbTemp.print(F(" Rev28 "));
             sbTemp.print(speed);
           }
           break;
@@ -836,7 +836,7 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
           else if (speed == 255 || speed == 0)
             sbTemp.print(F(" EStop"));
           else {
-            sbTemp.print(F(" Forw "));
+            sbTemp.print(F(" Fwd28 "));
             sbTemp.print(speed);
           }
           break;
