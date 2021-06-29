@@ -33,7 +33,7 @@
 #define eventtimer_default_h
 
 #include <Arduino.h>
-#include "config.h"
+#include "Config.h"
 
 #define GPIO_PREFER_SPEED
 #include <DIO2.h>

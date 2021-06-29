@@ -145,7 +145,7 @@
 #include "StringBuilder.h"
 
 // Statistics structures and functions.
-#include "DccStatistics.h"
+#include "DCCStatistics.h"
 
 const int nPackets = 16;  // Number of packet buffers
 const int pktLength = 8;  // Max length+1 in bytes of DCC packet

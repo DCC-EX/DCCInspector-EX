@@ -28,7 +28,7 @@
 #define dccstats_h
 
 #include <Arduino.h>
-#include "config.h"
+#include "Config.h"
 
 #if defined(ESP32) || defined(ESP8266) || defined(ESP_PLATFORM)
 #define INTERRUPT_SAFE IRAM_ATTR
