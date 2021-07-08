@@ -42,7 +42,7 @@
 #endif
 
 #include "Stringbuilder.h"
-#include "DccStatistics.h"
+#include "DCCStatistics.h"
 
 class HttpManagerClass {
   public:
