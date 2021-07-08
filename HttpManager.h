@@ -41,7 +41,7 @@
   #include <esp_wps.h>
 #endif
 
-#include "Stringbuilder.h"
+#include "StringBuilder.h"
 #include "DCCStatistics.h"
 
 class HttpManagerClass {
