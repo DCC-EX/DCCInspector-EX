@@ -20,7 +20,7 @@
 //
 // Add buttons to web page for modifying options: NMcK Apr 2021
 // Regroup functions into separate classes: NMcK Jan 2021
-// Move configuration items to config.h: NMcK Jan 2021
+// Move configuration items to Config.h: NMcK Jan 2021
 // Add OLED, and web server support on ESP32: NMcK Jan 2021
 // Add capture for ESP32; refactor timers: NMcK Jan 2021
 // Improve accuracy of timing and time calculations: NMcK Jan 2021
@@ -46,7 +46,7 @@
 // no USE_DIO2).
 //
 // Also tested on ESP8266 (NodeMCU and Heltec Kit 8) and ESP32 (Heltec Kit 32).  Both of these
-// support OLED display and HTTP server on WiFi.  See config.h for configuration options.
+// support OLED display and HTTP server on WiFi.  See Config.h for configuration options.
 // It will decode bits on the input pin which is GPIO2 for ESP8266 (labelled D4 on the NodeMCU) or 
 // GPIO5 on the ESP32.
 //
