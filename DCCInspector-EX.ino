@@ -117,6 +117,24 @@
 // Configurable parameter items now in separate include file.
 #include "Config.h"
 
+#include "LocoTable.h"
+
+// Ugly macros to print binay
+#define BYTE_TO_BINARY_PATTERN5 "%c%c%c%c%c"
+#define BYTE_TO_BINARY5(byte)  \
+  (byte & 0x10 ? '1' : '0'), \
+  (byte & 0x08 ? '1' : '0'), \
+  (byte & 0x04 ? '1' : '0'), \
+  (byte & 0x02 ? '1' : '0'), \
+  (byte & 0x01 ? '1' : '0')
+
+#define BYTE_TO_BINARY_PATTERN4 "%c%c%c%c"
+#define BYTE_TO_BINARY4(byte)  \
+  (byte & 0x08 ? '1' : '0'), \
+  (byte & 0x04 ? '1' : '0'), \
+  (byte & 0x02 ? '1' : '0'), \
+  (byte & 0x01 ? '1' : '0')
+
 ////////////////////////////////////////////////////////
 
 #if defined(USE_DIO2) && (defined(ARDUINO_UNO_NANO) || defined(ARDUINO_MEGA))
@@ -727,6 +745,7 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
 
   char tempBuffer[100];
   StringBuilder sbTemp(tempBuffer, sizeof(tempBuffer));
+  bool printLoco = true;
 
   // First determine the decoder type and address.
   if (dccPacket[inputPacket][1] == 0B11111111) {  // Idle packet
@@ -785,7 +804,7 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
       outputDecodedData = true;
     }
   } else if (decoderType == 0) {  // Loco / Multi Function Decoder
-    if (showLoc && isDifferentPacket) {
+    if (showLoc /*&& isDifferentPacket*/) {
       sbTemp.print(F("Loc "));
       sbTemp.print(decoderAddress);
       byte instructionType = instrByte1 >> 5;
@@ -801,6 +820,7 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
               sbTemp.print(F(" Fwd128 "));
             else
               sbTemp.print(F(" Rev128 "));
+	    printLoco = LocoTable::updateLocoReminder(decoderAddress, dccPacket[inputPacket][pktByteCount - 1]);
             byte speed = dccPacket[inputPacket][pktByteCount - 1] & 0B01111111;
             if (!speed)
               sbTemp.print(F("Stop"));
@@ -842,17 +862,21 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
           break;
 
         case 4:  // Loc Function L-4-3-2-1
-          sbTemp.print(F(" L F4-F1 "));
-          sbTemp.print(instrByte1 & 0B00011111, BIN);
+          sbTemp.print(F(" L4321 "));
+          sbTemp.printf(BYTE_TO_BINARY_PATTERN5, BYTE_TO_BINARY5(instrByte1));
+	  printLoco = LocoTable::updateFunc(decoderAddress, instrByte1, 0)
+	           || LocoTable::updateFunc(decoderAddress, instrByte1, 1);
           break;
 
         case 5:  // Loc Function 8-7-6-5
           if (bitRead(instrByte1, 4)) {
-            sbTemp.print(F(" F8-F5 "));
-            sbTemp.print(instrByte1 & 0B00001111, BIN);
+            sbTemp.print(F("  8765  "));
+	    sbTemp.printf(BYTE_TO_BINARY_PATTERN4, BYTE_TO_BINARY4(instrByte1));
+	    printLoco = LocoTable::updateFunc(decoderAddress, instrByte1, 5);
           } else {  // Loc Function 12-11-10-9
-            sbTemp.print(F(" F12-F9 "));
-            sbTemp.print(instrByte1 & 0B00001111, BIN);
+            sbTemp.print(F("  CBA9  "));
+	    sbTemp.printf(BYTE_TO_BINARY_PATTERN4, BYTE_TO_BINARY4(instrByte1));
+	    printLoco = LocoTable::updateFunc(decoderAddress, instrByte1, 9);
           }
           break;
 
@@ -970,7 +994,9 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
           sbTemp.print(F(" Unknown"));
           break;
       }
-      outputDecodedData = true;
+      outputDecodedData = printLoco; // printLoco is mostly true but
+				     // not when Loco value(s) have
+				     // not changed
     }
   }
 
