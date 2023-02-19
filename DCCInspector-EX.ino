@@ -821,37 +821,40 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
 
         case 1:                           // Advanced Operations
           if (instrByte1 == 0B00111111) {  // 128 speed steps
-            if (bitRead(dccPacket[inputPacket][pktByteCount - 1], 7))
+            if (bitRead(dccPacket[inputPacket][pktByteCount - 1], 7)) {
               if(showLoc) sbTemp.print(F(" Fwd128 "));
-            else
+            } else {
               if(showLoc) sbTemp.print(F(" Rev128 "));
+	    }
 	    locoInfoChanged = LocoTable::updateLocoReminder(decoderAddress, dccPacket[inputPacket][pktByteCount - 1]);
             byte speed = dccPacket[inputPacket][pktByteCount - 1] & 0B01111111;
 	    if (showCommand && locoInfoChanged)
 	      sprintf(commandBuffer, "<t %d %d %c>", decoderAddress, speed,
 		      dccPacket[inputPacket][pktByteCount - 1] & ~0B01111111 ? '1' : '0');
-            if (!speed)
+            if (!speed) {
               if(showLoc) sbTemp.print(F("Stop"));
-            else if (speed == 1)
+            } else if (speed == 1) {
               if(showLoc) sbTemp.print(F("Estop"));
-            else
+            } else {
               if(showLoc) sbTemp.print(speed - 1);
+	    }
           } else if (instrByte1 == 0B00111110) {  // Speed Restriction
-            if (bitRead(dccPacket[inputPacket][pktByteCount - 1], 7))
+            if (bitRead(dccPacket[inputPacket][pktByteCount - 1], 7)) {
               if(showLoc) sbTemp.print(F(" On "));
-            else
+	    } else {
               if(showLoc) sbTemp.print(F(" Off "));
+	    }
             if(showLoc) sbTemp.print(dccPacket[inputPacket][pktByteCount - 1] & 0B01111111);
           }
           break;
 
         case 2:  // Reverse speed step
           speed = ((instrByte1 & 0B00001111) << 1) - 3 + bitRead(instrByte1, 4);
-          if (speed == 253 || speed == 254)
+          if (speed == 253 || speed == 254) {
             if(showLoc) sbTemp.print(F(" Stop"));
-          else if (speed == 255 || speed == 0)
+          } else if (speed == 255 || speed == 0) {
             if(showLoc) sbTemp.print(F(" EStop"));
-          else {
+          } else {
             if(showLoc) {
 	      sbTemp.print(F(" Rev28 "));
 	      sbTemp.print(speed);
@@ -861,11 +864,11 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
 
         case 3:  // Forward speed step
           speed = ((instrByte1 & 0B00001111) << 1) - 3 + bitRead(instrByte1, 4);
-          if (speed == 253 || speed == 254)
+          if (speed == 253 || speed == 254) {
             if(showLoc) sbTemp.print(F(" Stop"));
-          else if (speed == 255 || speed == 0)
+          } else if (speed == 255 || speed == 0) {
             if(showLoc) sbTemp.print(F(" EStop"));
-          else {
+          } else {
             if(showLoc) {
 	      sbTemp.print(F(" Fwd28 "));
 	      sbTemp.print(speed);
