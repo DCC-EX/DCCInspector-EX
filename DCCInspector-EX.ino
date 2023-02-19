@@ -187,6 +187,7 @@ bool showDiagnostics = true;
 bool showBitLengths = false;
 bool showCpuStats = false;
 bool showCommand = true;
+bool showBinary = false;
 
 byte inputPacket = 0;  // Index of next packet to be analysed in dccPacket array
 byte pktByteCount = 0;
@@ -806,69 +807,77 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
       outputDecodedData = true;
     }
   } else if (decoderType == 0) {  // Loco / Multi Function Decoder
-    if (showLoc /*&& isDifferentPacket*/) {
-      sbTemp.print(F("Loc "));
-      sbTemp.print(decoderAddress);
+    if (true /*&& isDifferentPacket*/) {
+      if(showLoc) {
+	sbTemp.print(F("Loc "));
+	sbTemp.print(decoderAddress);
+      }
       byte instructionType = instrByte1 >> 5;
       byte value;
       switch (instructionType) {
         case 0:
-          sbTemp.print(F(" Control"));
+          if(showLoc) sbTemp.print(F(" Control"));
           break;
 
         case 1:                           // Advanced Operations
           if (instrByte1 == 0B00111111) {  // 128 speed steps
             if (bitRead(dccPacket[inputPacket][pktByteCount - 1], 7))
-              sbTemp.print(F(" Fwd128 "));
+              if(showLoc) sbTemp.print(F(" Fwd128 "));
             else
-              sbTemp.print(F(" Rev128 "));
+              if(showLoc) sbTemp.print(F(" Rev128 "));
 	    locoInfoChanged = LocoTable::updateLocoReminder(decoderAddress, dccPacket[inputPacket][pktByteCount - 1]);
             byte speed = dccPacket[inputPacket][pktByteCount - 1] & 0B01111111;
 	    if (showCommand && locoInfoChanged)
 	      sprintf(commandBuffer, "<t %d %d %c>", decoderAddress, speed,
 		      dccPacket[inputPacket][pktByteCount - 1] & ~0B01111111 ? '1' : '0');
             if (!speed)
-              sbTemp.print(F("Stop"));
+              if(showLoc) sbTemp.print(F("Stop"));
             else if (speed == 1)
-              sbTemp.print(F("Estop"));
+              if(showLoc) sbTemp.print(F("Estop"));
             else
-              sbTemp.print(speed - 1);
+              if(showLoc) sbTemp.print(speed - 1);
           } else if (instrByte1 == 0B00111110) {  // Speed Restriction
             if (bitRead(dccPacket[inputPacket][pktByteCount - 1], 7))
-              sbTemp.print(F(" On "));
+              if(showLoc) sbTemp.print(F(" On "));
             else
-              sbTemp.print(F(" Off "));
-            sbTemp.print(dccPacket[inputPacket][pktByteCount - 1] & 0B01111111);
+              if(showLoc) sbTemp.print(F(" Off "));
+            if(showLoc) sbTemp.print(dccPacket[inputPacket][pktByteCount - 1] & 0B01111111);
           }
           break;
 
         case 2:  // Reverse speed step
           speed = ((instrByte1 & 0B00001111) << 1) - 3 + bitRead(instrByte1, 4);
           if (speed == 253 || speed == 254)
-            sbTemp.print(F(" Stop"));
+            if(showLoc) sbTemp.print(F(" Stop"));
           else if (speed == 255 || speed == 0)
-            sbTemp.print(F(" EStop"));
+            if(showLoc) sbTemp.print(F(" EStop"));
           else {
-            sbTemp.print(F(" Rev28 "));
-            sbTemp.print(speed);
+            if(showLoc) {
+	      sbTemp.print(F(" Rev28 "));
+	      sbTemp.print(speed);
+	    }
           }
           break;
 
         case 3:  // Forward speed step
           speed = ((instrByte1 & 0B00001111) << 1) - 3 + bitRead(instrByte1, 4);
           if (speed == 253 || speed == 254)
-            sbTemp.print(F(" Stop"));
+            if(showLoc) sbTemp.print(F(" Stop"));
           else if (speed == 255 || speed == 0)
-            sbTemp.print(F(" EStop"));
+            if(showLoc) sbTemp.print(F(" EStop"));
           else {
-            sbTemp.print(F(" Fwd28 "));
-            sbTemp.print(speed);
+            if(showLoc) {
+	      sbTemp.print(F(" Fwd28 "));
+	      sbTemp.print(speed);
+	    }
           }
           break;
 
         case 4:  // Loc Function L-4-3-2-1
-          sbTemp.print(F(" L4321 "));
-          sbTemp.printf(BYTE_TO_BINARY_PATTERN5, BYTE_TO_BINARY5(instrByte1));
+          if(showLoc) {
+	    sbTemp.print(F(" L4321 "));
+	    sbTemp.printf(BYTE_TO_BINARY_PATTERN5, BYTE_TO_BINARY5(instrByte1));
+	  }
 	  locoInfoChanged = LocoTable::updateFunc(decoderAddress, instrByte1, 0)
 	           || LocoTable::updateFunc(decoderAddress, instrByte1, 1);
 	  if (showCommand && locoInfoChanged)
@@ -877,14 +886,18 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
 
         case 5:  // Loc Function 8-7-6-5
           if (bitRead(instrByte1, 4)) {
-            sbTemp.print(F("  8765  "));
-	    sbTemp.printf(BYTE_TO_BINARY_PATTERN4, BYTE_TO_BINARY4(instrByte1));
+            if(showLoc) {
+	      sbTemp.print(F("  8765  "));
+	      sbTemp.printf(BYTE_TO_BINARY_PATTERN4, BYTE_TO_BINARY4(instrByte1));
+	    }
 	    locoInfoChanged = LocoTable::updateFunc(decoderAddress, instrByte1, 5);
 	    if (showCommand && locoInfoChanged)
 	      sprintf(commandBuffer, "<f %d %d>", decoderAddress, 176 + (instrByte1 & 0B1111));
           } else {  // Loc Function 12-11-10-9
-            sbTemp.print(F("  CBA9  "));
-	    sbTemp.printf(BYTE_TO_BINARY_PATTERN4, BYTE_TO_BINARY4(instrByte1));
+            if(showLoc) {
+	      sbTemp.print(F("  CBA9  "));
+	      sbTemp.printf(BYTE_TO_BINARY_PATTERN4, BYTE_TO_BINARY4(instrByte1));
+	    }
 	    locoInfoChanged = LocoTable::updateFunc(decoderAddress, instrByte1, 9);
 	    if (showCommand && locoInfoChanged)
 	      sprintf(commandBuffer, "<f %d %d>", decoderAddress, 160 + (instrByte1 & 0B1111));
@@ -892,6 +905,8 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
           break;
 
         case 6:  // Future Expansions
+	  if (!showLoc)
+	    break;
           switch (instrByte1 & 0B00011111) {
             case 0:  // Binary State Control Instruction long form
               sbTemp.print(F(" BinSLong "));
@@ -947,6 +962,8 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
           break;
 
         case 7:
+	  if (!showLoc)
+	    break;
           sbTemp.print(F(" CV "));
           value = dccPacket[inputPacket][pktByteCount - 1];
           if (instrByte1 & 0B00010000) {  // CV Short Form
@@ -1002,7 +1019,7 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
           break;
 
         default:
-          sbTemp.print(F(" Unknown"));
+	  if(showLoc) sbTemp.print(F(" Unknown"));
           break;
       }
       // locoInfoChanged is true when locoInfo has changed
@@ -1019,10 +1036,12 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
     sbPacketDecode.end();
 #endif
 
-    // Append binary dump for Serial and HTTP
-    sbTemp.setPos(21);
-    sbTemp.print(' ');
-    printPacketBits(sbTemp, inputPacket);
+    if (showBinary) {
+      // Append binary dump for Serial and HTTP
+      sbTemp.setPos(21);
+      sbTemp.print(' ');
+      printPacketBits(sbTemp, inputPacket);
+    }
     sbTemp.end();  // terminate string in buffer.
 
     // Get reference to buffer containing results.
@@ -1035,7 +1054,8 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
 #endif
 
     // Also print to USB serial, and dump packet in hex.
-    output.println(decodedPacket);
+    if (decodedPacket[0])
+      output.println(decodedPacket);
 
     // Print command if we did make one
     if (commandBuffer[0])
