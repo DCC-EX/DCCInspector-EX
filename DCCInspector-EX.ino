@@ -186,6 +186,7 @@ bool showHeartBeat = true;
 bool showDiagnostics = true;
 bool showBitLengths = false;
 bool showCpuStats = false;
+bool showCommand = true;
 
 byte inputPacket = 0;  // Index of next packet to be analysed in dccPacket array
 byte pktByteCount = 0;
@@ -746,6 +747,7 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
   char tempBuffer[100];
   StringBuilder sbTemp(tempBuffer, sizeof(tempBuffer));
   bool printLoco = true;
+  char commandBuffer[50] = "" ; // "<t xxxx xxx x>" len 16
 
   // First determine the decoder type and address.
   if (dccPacket[inputPacket][1] == 0B11111111) {  // Idle packet
@@ -822,6 +824,9 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
               sbTemp.print(F(" Rev128 "));
 	    printLoco = LocoTable::updateLocoReminder(decoderAddress, dccPacket[inputPacket][pktByteCount - 1]);
             byte speed = dccPacket[inputPacket][pktByteCount - 1] & 0B01111111;
+	    if (showCommand && printLoco)
+	      sprintf(commandBuffer, "<t %d %d %c>", decoderAddress, speed,
+		      dccPacket[inputPacket][pktByteCount - 1] & ~0B01111111 ? '1' : '0');
             if (!speed)
               sbTemp.print(F("Stop"));
             else if (speed == 1)
@@ -866,6 +871,8 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
           sbTemp.printf(BYTE_TO_BINARY_PATTERN5, BYTE_TO_BINARY5(instrByte1));
 	  printLoco = LocoTable::updateFunc(decoderAddress, instrByte1, 0)
 	           || LocoTable::updateFunc(decoderAddress, instrByte1, 1);
+	  if (showCommand && printLoco)
+	    sprintf(commandBuffer, "<f %d %d>", decoderAddress, 128 + (instrByte1 & 0B11111));
           break;
 
         case 5:  // Loc Function 8-7-6-5
@@ -873,10 +880,14 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
             sbTemp.print(F("  8765  "));
 	    sbTemp.printf(BYTE_TO_BINARY_PATTERN4, BYTE_TO_BINARY4(instrByte1));
 	    printLoco = LocoTable::updateFunc(decoderAddress, instrByte1, 5);
+	    if (showCommand && printLoco)
+	      sprintf(commandBuffer, "<f %d %d>", decoderAddress, 176 + (instrByte1 & 0B1111));
           } else {  // Loc Function 12-11-10-9
             sbTemp.print(F("  CBA9  "));
 	    sbTemp.printf(BYTE_TO_BINARY_PATTERN4, BYTE_TO_BINARY4(instrByte1));
 	    printLoco = LocoTable::updateFunc(decoderAddress, instrByte1, 9);
+	    if (showCommand && printLoco)
+	      sprintf(commandBuffer, "<f %d %d>", decoderAddress, 160 + (instrByte1 & 0B1111));
           }
           break;
 
@@ -1025,6 +1036,10 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
 
     // Also print to USB serial, and dump packet in hex.
     output.println(decodedPacket);
+
+    // Print command if we did make one
+    if (commandBuffer[0])
+      output.println(commandBuffer);
   }
 }
 
