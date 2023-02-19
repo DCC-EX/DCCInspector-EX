@@ -746,7 +746,7 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
 
   char tempBuffer[100];
   StringBuilder sbTemp(tempBuffer, sizeof(tempBuffer));
-  bool printLoco = true;
+  bool locoInfoChanged = true;
   char commandBuffer[50] = "" ; // "<t xxxx xxx x>" len 16
 
   // First determine the decoder type and address.
@@ -822,9 +822,9 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
               sbTemp.print(F(" Fwd128 "));
             else
               sbTemp.print(F(" Rev128 "));
-	    printLoco = LocoTable::updateLocoReminder(decoderAddress, dccPacket[inputPacket][pktByteCount - 1]);
+	    locoInfoChanged = LocoTable::updateLocoReminder(decoderAddress, dccPacket[inputPacket][pktByteCount - 1]);
             byte speed = dccPacket[inputPacket][pktByteCount - 1] & 0B01111111;
-	    if (showCommand && printLoco)
+	    if (showCommand && locoInfoChanged)
 	      sprintf(commandBuffer, "<t %d %d %c>", decoderAddress, speed,
 		      dccPacket[inputPacket][pktByteCount - 1] & ~0B01111111 ? '1' : '0');
             if (!speed)
@@ -869,9 +869,9 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
         case 4:  // Loc Function L-4-3-2-1
           sbTemp.print(F(" L4321 "));
           sbTemp.printf(BYTE_TO_BINARY_PATTERN5, BYTE_TO_BINARY5(instrByte1));
-	  printLoco = LocoTable::updateFunc(decoderAddress, instrByte1, 0)
+	  locoInfoChanged = LocoTable::updateFunc(decoderAddress, instrByte1, 0)
 	           || LocoTable::updateFunc(decoderAddress, instrByte1, 1);
-	  if (showCommand && printLoco)
+	  if (showCommand && locoInfoChanged)
 	    sprintf(commandBuffer, "<f %d %d>", decoderAddress, 128 + (instrByte1 & 0B11111));
           break;
 
@@ -879,14 +879,14 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
           if (bitRead(instrByte1, 4)) {
             sbTemp.print(F("  8765  "));
 	    sbTemp.printf(BYTE_TO_BINARY_PATTERN4, BYTE_TO_BINARY4(instrByte1));
-	    printLoco = LocoTable::updateFunc(decoderAddress, instrByte1, 5);
-	    if (showCommand && printLoco)
+	    locoInfoChanged = LocoTable::updateFunc(decoderAddress, instrByte1, 5);
+	    if (showCommand && locoInfoChanged)
 	      sprintf(commandBuffer, "<f %d %d>", decoderAddress, 176 + (instrByte1 & 0B1111));
           } else {  // Loc Function 12-11-10-9
             sbTemp.print(F("  CBA9  "));
 	    sbTemp.printf(BYTE_TO_BINARY_PATTERN4, BYTE_TO_BINARY4(instrByte1));
-	    printLoco = LocoTable::updateFunc(decoderAddress, instrByte1, 9);
-	    if (showCommand && printLoco)
+	    locoInfoChanged = LocoTable::updateFunc(decoderAddress, instrByte1, 9);
+	    if (showCommand && locoInfoChanged)
 	      sprintf(commandBuffer, "<f %d %d>", decoderAddress, 160 + (instrByte1 & 0B1111));
           }
           break;
@@ -1005,9 +1005,9 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
           sbTemp.print(F(" Unknown"));
           break;
       }
-      outputDecodedData = printLoco; // printLoco is mostly true but
-				     // not when Loco value(s) have
-				     // not changed
+      // locoInfoChanged is true when locoInfo has changed
+      // OR anything else has changed here.
+      outputDecodedData = locoInfoChanged;
     }
   }
 
