@@ -913,7 +913,7 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
               sbTemp.print(
                   128 * ((uint16_t)dccPacket[inputPacket][pktByteCount - 1]) +
                   (dccPacket[inputPacket][pktByteCount - 2] & 127));
-              if bitRead (dccPacket[inputPacket][pktByteCount - 2], 7)
+              if (bitRead (dccPacket[inputPacket][pktByteCount - 2], 7))
                 sbTemp.print(F(" On"));
               else
                 sbTemp.print(F(" Off"));
@@ -922,7 +922,7 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
               sbTemp.print(F(" BinShort "));
               sbTemp.print(dccPacket[inputPacket][pktByteCount - 1] &
                            0B01111111);
-              if bitRead (dccPacket[inputPacket][pktByteCount - 1], 7)
+              if (bitRead (dccPacket[inputPacket][pktByteCount - 1], 7))
                 sbTemp.print(F(" On"));
               else
                 sbTemp.print(F(" Off"));
