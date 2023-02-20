@@ -143,6 +143,16 @@
 
 #define SERIAL_SPEED 115200
 
+// Define startup values of the different show variables.
+#define SHOWLOC         true
+#define SHOWACC         true
+#define SHOWHEARTBEAT   true
+#define SHOWDIAGNOSTICS true
+#define SHOWBITLENGTHS  false
+#define SHOWCPUSTATS    false
+#define SHOWCOMMAND     true
+#define SHOWBINARY      false
+
 #if defined(ESP32) || defined(ESP8266) || defined(ESP_PLATFORM)
   #define INTERRUPT_SAFE IRAM_ATTR
 #else

@@ -180,14 +180,14 @@ volatile byte strictMode =
 
 // Variables used by main loop
 byte packetHashListSize = 32;  // DCC packets checksum buffer size
-bool showLoc = true;
-bool showAcc = true;
-bool showHeartBeat = true;
-bool showDiagnostics = true;
-bool showBitLengths = false;
-bool showCpuStats = false;
-bool showCommand = true;
-bool showBinary = false;
+bool showLoc = SHOWLOC;
+bool showAcc = SHOWACC;
+bool showHeartBeat = SHOWHEARTBEAT;
+bool showDiagnostics = SHOWDIAGNOSTICS;
+bool showBitLengths = SHOWBITLENGTHS;
+bool showCpuStats = SHOWCPUSTATS;
+bool showCommand = SHOWCOMMAND;
+bool showBinary = SHOWBINARY;
 
 byte inputPacket = 0;  // Index of next packet to be analysed in dccPacket array
 byte pktByteCount = 0;
