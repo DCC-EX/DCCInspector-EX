@@ -1143,6 +1143,18 @@ bool processCommands() {
         Serial.print(F("filter input = "));
         Serial.println(filterInput);
         break;
+      case 'p':
+      case 'P':
+        showBinary = !showBinary;
+        Serial.print(F("show binary pattern = "));
+        Serial.println(showBinary);
+        break;
+      case 'e':
+      case 'E':
+        showCommand = !showCommand;
+        Serial.print(F("show EX commands = "));
+        Serial.println(showCommand);
+        break;
       case 's':
       case 'S':
         strictMode = (strictMode + 1) % 3;
@@ -1182,12 +1194,14 @@ bool processCommands() {
         Serial.println(F("9 = 32 (default)"));
         Serial.println(F("0 = 64"));
         Serial.println(F("a = show accessory packets toggle"));
-        Serial.println(F("l = show locomotive packets toggle"));
-        Serial.println(F("d = show diagnostics toggle"));
-        Serial.println(F("h = show heartbeat toggle"));
         Serial.println(F("b = show half-bit counts by length toggle"));
         Serial.println(F("c = show cpu/irc usage in sniffer"));
+        Serial.println(F("d = show diagnostics toggle"));
+        Serial.println(F("e = show Ex commands"));
         Serial.println(F("f = input filter toggle"));
+        Serial.println(F("h = show heartbeat toggle"));
+        Serial.println(F("l = show locomotive packets toggle"));
+        Serial.println(F("p = show binary Pattern"));
         Serial.println(
             F("s = set NMRA compliance strictness "
               "(0=none,1=decoder,2=controller)"));
