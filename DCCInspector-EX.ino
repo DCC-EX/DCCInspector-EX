@@ -849,31 +849,30 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
           break;
 
         case 2:  // Reverse speed step
-          speed = ((instrByte1 & 0B00001111) << 1) - 3 + bitRead(instrByte1, 4);
-          if (speed == 253 || speed == 254) {
-            if(showLoc) sbTemp.print(F(" Stop"));
-          } else if (speed == 255 || speed == 0) {
-            if(showLoc) sbTemp.print(F(" EStop"));
-          } else {
-            if(showLoc) {
-	      sbTemp.print(F(" Rev28 "));
-	      sbTemp.print(speed);
-	    }
-          }
-          break;
-
         case 3:  // Forward speed step
-          speed = ((instrByte1 & 0B00001111) << 1) - 3 + bitRead(instrByte1, 4);
-          if (speed == 253 || speed == 254) {
-            if(showLoc) sbTemp.print(F(" Stop"));
-          } else if (speed == 255 || speed == 0) {
-            if(showLoc) sbTemp.print(F(" EStop"));
-          } else {
-            if(showLoc) {
-	      sbTemp.print(F(" Fwd28 "));
-	      sbTemp.print(speed);
+	  {
+	    int8_t exSpeed;
+	    speed = ((instrByte1 & 0B00001111) << 1) + bitRead(instrByte1, 4); // reshuffle bits
+	    // does not matter in what order the speed bits are saved in the table
+	    locoInfoChanged = LocoTable::updateLocoReminder(decoderAddress, instrByte1 & 0B00111111);
+	    if (speed == 0 || speed == 1) {
+	      exSpeed = 0;
+	      if(showLoc) sbTemp.print(F(" Stop"));
+	    } else if (speed == 2 || speed == 3) {
+	      exSpeed = -1;
+	      if(showLoc) sbTemp.print(F(" EStop"));
+	    } else {
+	      exSpeed = speed - 3;     // reduce to start from 1
+	      if(showLoc) {
+		sbTemp.print(instructionType == 2 ? F(" Rev28 ") : F(" Fwd28 "));
+		sbTemp.print(exSpeed); // print in 28 step mode
+	      }
+	      exSpeed = exSpeed *9/2;  // scale to 126 speed steps
 	    }
-          }
+	    if (showCommand && locoInfoChanged)
+	      sprintf(commandBuffer, "<t %d %d %c>", decoderAddress, exSpeed, //use in 126 step mode
+		      instrByte1 & 0B00100000 ? '1' : '0');
+	  }
           break;
 
         case 4:  // Loc Function L-4-3-2-1
