@@ -820,6 +820,8 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
           break;
 
         case 1:                           // Advanced Operations
+	{
+	  int8_t exSpeed;
           if (instrByte1 == 0B00111111) {  // 128 speed steps
             if (bitRead(dccPacket[inputPacket][pktByteCount - 1], 7)) {
               if(showLoc) sbTemp.print(F(" Fwd128 "));
@@ -828,16 +830,19 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
 	    }
 	    locoInfoChanged = LocoTable::updateLocoReminder(decoderAddress, dccPacket[inputPacket][pktByteCount - 1]);
             byte speed = dccPacket[inputPacket][pktByteCount - 1] & 0B01111111;
-	    if (showCommand && locoInfoChanged)
-	      sprintf(commandBuffer, "<t %d %d %c>", decoderAddress, speed,
-		      dccPacket[inputPacket][pktByteCount - 1] & ~0B01111111 ? '1' : '0');
             if (!speed) {
+	      exSpeed = 0;
               if(showLoc) sbTemp.print(F("Stop"));
             } else if (speed == 1) {
+	      exSpeed = -1;
               if(showLoc) sbTemp.print(F("Estop"));
             } else {
-              if(showLoc) sbTemp.print(speed - 1);
+	      exSpeed = speed -1;
+              if(showLoc) sbTemp.print(exSpeed);
 	    }
+	    if (showCommand && locoInfoChanged)
+	      sprintf(commandBuffer, "<t %d %d %c>", decoderAddress, exSpeed,
+		      dccPacket[inputPacket][pktByteCount - 1] & ~0B01111111 ? '1' : '0');
           } else if (instrByte1 == 0B00111110) {  // Speed Restriction
             if (bitRead(dccPacket[inputPacket][pktByteCount - 1], 7)) {
               if(showLoc) sbTemp.print(F(" On "));
@@ -846,7 +851,8 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
 	    }
             if(showLoc) sbTemp.print(dccPacket[inputPacket][pktByteCount - 1] & 0B01111111);
           }
-          break;
+	}
+	break;
 
         case 2:  // Reverse speed step
         case 3:  // Forward speed step
