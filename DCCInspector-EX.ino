@@ -212,9 +212,11 @@ bool INTERRUPT_SAFE capture(unsigned long halfBitLengthTicks);
 // Perform the setup functions for the application.
 
 void setup() {
+  delay(2000);                         // ESP8266 seems to need this before serial
   Serial.begin(SERIAL_SPEED);
-  Serial.println(F("---"));
-  Serial.println(F("DCC Packet Analyze initialising"));
+  while (!Serial && millis() < 10000); // wait max 10s extra for Serial to start
+  Serial.println(F("<* License GPLv3 fsf.org (c) dcc-ex.com *>"));
+  Serial.println(F("<* DCC Packet Analyze initialising *>"));
 
 #ifdef LEDPIN_ACTIVE
   pinMode(LEDPIN_ACTIVE, OUTPUT);
