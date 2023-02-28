@@ -1,12 +1,13 @@
 /* Copyright (c) 2021 Neil McKechnie
+ *           (c) 2023 Harald Barth
  * Parts based on DCC_Sniffer, Ruud Boer, October 2015
  *
- * This Library is free software: you can redistribute it and/or modify
+ * This source is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
  *
- * This Library is distributed in the hope that it will be useful,
+ * This source is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
