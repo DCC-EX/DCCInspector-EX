@@ -828,7 +828,7 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
             } else {
               if(showLoc) sbTemp.print(F(" Rev128 "));
 	    }
-	    locoInfoChanged = LocoTable::updateLocoReminder(decoderAddress, dccPacket[inputPacket][pktByteCount - 1]);
+	    locoInfoChanged = LocoTable::updateLoco(decoderAddress, dccPacket[inputPacket][pktByteCount - 1]);
             byte speed = dccPacket[inputPacket][pktByteCount - 1] & 0B01111111;
             if (!speed) {
 	      exSpeed = 0;
@@ -860,7 +860,7 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
 	    int8_t exSpeed;
 	    speed = ((instrByte1 & 0B00001111) << 1) + bitRead(instrByte1, 4); // reshuffle bits
 	    // does not matter in what order the speed bits are saved in the table
-	    locoInfoChanged = LocoTable::updateLocoReminder(decoderAddress, instrByte1 & 0B00111111);
+	    locoInfoChanged = LocoTable::updateLoco(decoderAddress, instrByte1 & 0B00111111);
 	    if (speed == 0 || speed == 1) {
 	      exSpeed = 0;
 	      if(showLoc) sbTemp.print(F(" Stop"));

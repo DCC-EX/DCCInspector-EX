@@ -30,7 +30,7 @@ int LocoTable::lookupSpeedTable(int locoId, bool autoCreate) {
 }
 
 // returns false only if loco existed but nothing was changed
-bool LocoTable::updateLocoReminder(int loco, byte speedCode) {
+bool LocoTable::updateLoco(int loco, byte speedCode) {
   if (loco==0) {
     /*
      // broadcast stop/estop but dont change direction

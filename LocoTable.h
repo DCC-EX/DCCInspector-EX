@@ -9,7 +9,7 @@ public:
     if (reg>=0) speedTable[reg].loco=0;
   }
   static int lookupSpeedTable(int locoId, bool autoCreate);
-  static bool updateLocoReminder(int loco, byte speedCode);
+  static bool updateLoco(int loco, byte speedCode);
   static bool updateFunc(int loco, byte func, int shift);
 
 private:
