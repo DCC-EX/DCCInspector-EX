@@ -709,9 +709,8 @@ bool processDCC(Print &output) {
             hash;  // add new packet's hash to the list
         if (packetHashListCounter >= packetHashListSize)
           packetHashListCounter = 0;
-
-        DecodePacket(output, inputPacket, isDifferentPacket);
       }
+      DecodePacket(output, inputPacket, isDifferentPacket);
 
 // Optional test led whose brightness depends on loco speed setting.
 #ifdef LEDPIN_LOCOSPEED
