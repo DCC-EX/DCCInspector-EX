@@ -272,17 +272,21 @@ void setup() {
 
 void loop() {
   bool somethingDone = false;
+  static bool newPeriod = false;
+  unsigned long now;
 
   // The first bit runs one second after setup, and completes the
   // initialisation.
-  if (!calibrated && millis() >= lastRefresh + 1000) {
+  now = millis();
+  if (!calibrated && now - 1000 > lastRefresh) {
+    lastRefresh = now;
     // Calibration cycle done, record the details.
     Serial.println(F("done."));
     calibrated = true;
 
     // Read (and discard) stats, then clear them.
     DCCStatistics.getAndClearStats();
-    clearHashList();
+    newPeriod = true;
 
     // Start recording data from DCC.
     if (!EventTimer.begin(INPUTPIN, capture)) {
@@ -296,12 +300,9 @@ void loop() {
     Serial.print(DCCStatistics.getRefreshTime());
     Serial.println(F(" seconds"));
     Serial.println(F("---"));
-
-    lastRefresh = millis();
-
-  } else if (millis() >=
-             lastRefresh +
-                 (unsigned long)DCCStatistics.getRefreshTime() * 1000) {
+  }
+  if (now - ( (unsigned long)DCCStatistics.getRefreshTime() * 1000) > lastRefresh) {
+    lastRefresh = now;
     // The next part runs once every 'refresh time' seconds.  It primarily
     // captures, resets and
     //  outputs the statistics.
@@ -310,7 +311,7 @@ void loop() {
 
     // Snapshot and clear statistics
     Statistics stats = DCCStatistics.getAndClearStats();
-    clearHashList();
+    newPeriod = true;
 
     // Print DCC Statistics to the serial USB output.
     if (showDiagnostics) {
@@ -350,14 +351,14 @@ void loop() {
     }
 #endif
 
-    lastRefresh = millis();
     somethingDone = true;
   }
 
   // Check for DCC packets - if found, analyse and display them
-  if (processDCC(Serial)) {
+  if (processDCC(Serial, newPeriod)) {
     somethingDone = true;
     inactivityCount = 0;
+    newPeriod = false;
   }
 
   // Check for commands received over the USB serial connection.
@@ -666,11 +667,12 @@ void UpdateLED() {
 // Validate received packet and pass to decoder.
 // Return false if nothing done.
 
-bool processDCC(Print &output) {
-  byte isDifferentPacket = 0;
+bool processDCC(Print &output, bool newPeriod) {
+  //byte isDifferentPacket = 0;
+  bool ret = false;
 
   if (!packetsPending) {
-    return false;
+    return ret;
   }
 
   pktByteCount = dccPacket[inputPacket][0];
@@ -690,28 +692,9 @@ bool processDCC(Print &output) {
 
       // Hooray - we've got a packet to decode, with no errors!
       DCCStatistics.recordPacket();
-
-      // Generate a cyclic hash based on the packet contents for checking if
-      // we've seen a similar packet before.
-      isDifferentPacket = true;
-      unsigned int hash =
-          dccPacket[inputPacket][pktByteCount];  // calculate checksum
-      for (byte n = 1; n < pktByteCount; n++)
-        hash = ((hash << 5) | (hash >> 11)) ^ dccPacket[inputPacket][n];
-
-      // Check if packet's checksum is already in the list.
-      for (byte n = 0; n < packetHashListSize; n++) {
-        if (hash == packetHashList[n]) isDifferentPacket = false;
-      }
-
-      if (isDifferentPacket) {
-        packetHashList[packetHashListCounter++] =
-            hash;  // add new packet's hash to the list
-        if (packetHashListCounter >= packetHashListSize)
-          packetHashListCounter = 0;
-      }
-      DecodePacket(output, inputPacket, isDifferentPacket);
-
+      DecodePacket(output, inputPacket, newPeriod);
+      ret = true;
+      
 // Optional test led whose brightness depends on loco speed setting.
 #ifdef LEDPIN_LOCOSPEED
       // Output to LED
@@ -727,10 +710,13 @@ bool processDCC(Print &output) {
 #endif
     }
   }
-  packetsPending--;  // Free packet buffer.
+  if (packetsPending > 0)
+    packetsPending--;  // Free packet buffer.
+  else
+    output.println('!'); // should never be reached
   if (++inputPacket >= nPackets) inputPacket = 0;
 
-  return true;
+  return ret;
 }
 
 //=======================================================================
@@ -738,7 +724,7 @@ bool processDCC(Print &output) {
 // textual representation.  Send results out over the USB serial
 // connection.
 
-void DecodePacket(Print &output, int inputPacket, bool showIdle) {
+void DecodePacket(Print &output, int inputPacket, bool newPeriod) {
   byte instrByte1;
   byte decoderType;  // 0=Loc, 1=Acc
   unsigned int decoderAddress;
@@ -749,11 +735,16 @@ void DecodePacket(Print &output, int inputPacket, bool showIdle) {
   StringBuilder sbTemp(tempBuffer, sizeof(tempBuffer));
   bool locoInfoChanged = true;
   char commandBuffer[50] = "" ; // "<t xxxx xxx x>" len 16
+  static bool showIdle = false;
 
+  if (newPeriod) {
+    showIdle = true;
+  }
   // First determine the decoder type and address.
   if (dccPacket[inputPacket][1] == 0B11111111) {  // Idle packet
     if (showIdle) {
       sbTemp.print(F("Idle "));
+      showIdle = false;
       outputDecodedData = true;
     }
     decoderType = 255;
