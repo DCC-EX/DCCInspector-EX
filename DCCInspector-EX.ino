@@ -738,7 +738,7 @@ bool processDCC(Print &output) {
 // textual representation.  Send results out over the USB serial
 // connection.
 
-void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
+void DecodePacket(Print &output, int inputPacket, bool showIdle) {
   byte instrByte1;
   byte decoderType;  // 0=Loc, 1=Acc
   unsigned int decoderAddress;
@@ -752,7 +752,7 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
 
   // First determine the decoder type and address.
   if (dccPacket[inputPacket][1] == 0B11111111) {  // Idle packet
-    if (isDifferentPacket) {
+    if (showIdle) {
       sbTemp.print(F("Idle "));
       outputDecodedData = true;
     }
@@ -807,233 +807,231 @@ void DecodePacket(Print &output, int inputPacket, bool isDifferentPacket) {
       outputDecodedData = true;
     }
   } else if (decoderType == 0) {  // Loco / Multi Function Decoder
-    if (true /*&& isDifferentPacket*/) {
-      if(showLoc) {
-	sbTemp.print(F("Loc "));
-	sbTemp.print(decoderAddress);
-      }
-      byte instructionType = instrByte1 >> 5;
-      byte value;
-      switch (instructionType) {
-        case 0:
-          if(showLoc) sbTemp.print(F(" Control"));
-          break;
-
-        case 1:                           // Advanced Operations
-	{
-	  int8_t exSpeed;
-          if (instrByte1 == 0B00111111) {  // 128 speed steps
-            if (bitRead(dccPacket[inputPacket][pktByteCount - 1], 7)) {
-              if(showLoc) sbTemp.print(F(" Fwd128 "));
-            } else {
-              if(showLoc) sbTemp.print(F(" Rev128 "));
-	    }
-	    locoInfoChanged = LocoTable::updateLoco(decoderAddress, dccPacket[inputPacket][pktByteCount - 1]);
-            byte speed = dccPacket[inputPacket][pktByteCount - 1] & 0B01111111;
-            if (!speed) {
-	      exSpeed = 0;
-              if(showLoc) sbTemp.print(F("Stop"));
-            } else if (speed == 1) {
-	      exSpeed = -1;
-              if(showLoc) sbTemp.print(F("Estop"));
-            } else {
-	      exSpeed = speed -1;
-              if(showLoc) sbTemp.print(exSpeed);
-	    }
-	    if (showCommand && locoInfoChanged)
-	      sprintf(commandBuffer, "<t %d %d %c>", decoderAddress, exSpeed,
-		      dccPacket[inputPacket][pktByteCount - 1] & ~0B01111111 ? '1' : '0');
-          } else if (instrByte1 == 0B00111110) {  // Speed Restriction
-            if (bitRead(dccPacket[inputPacket][pktByteCount - 1], 7)) {
-              if(showLoc) sbTemp.print(F(" On "));
-	    } else {
-              if(showLoc) sbTemp.print(F(" Off "));
-	    }
-            if(showLoc) sbTemp.print(dccPacket[inputPacket][pktByteCount - 1] & 0B01111111);
-          }
-	}
-	break;
-
-        case 2:  // Reverse speed step
-        case 3:  // Forward speed step
-	  {
-	    int8_t exSpeed;
-	    speed = ((instrByte1 & 0B00001111) << 1) + bitRead(instrByte1, 4); // reshuffle bits
-	    // does not matter in what order the speed bits are saved in the table
-	    locoInfoChanged = LocoTable::updateLoco(decoderAddress, instrByte1 & 0B00111111);
-	    if (speed == 0 || speed == 1) {
-	      exSpeed = 0;
-	      if(showLoc) sbTemp.print(F(" Stop"));
-	    } else if (speed == 2 || speed == 3) {
-	      exSpeed = -1;
-	      if(showLoc) sbTemp.print(F(" EStop"));
-	    } else {
-	      exSpeed = speed - 3;     // reduce to start from 1
-	      if(showLoc) {
-		sbTemp.print(instructionType == 2 ? F(" Rev28 ") : F(" Fwd28 "));
-		sbTemp.print(exSpeed); // print in 28 step mode
-	      }
-	      exSpeed = exSpeed *9/2;  // scale to 126 speed steps
-	    }
-	    if (showCommand && locoInfoChanged)
-	      sprintf(commandBuffer, "<t %d %d %c>", decoderAddress, exSpeed, //use in 126 step mode
-		      instrByte1 & 0B00100000 ? '1' : '0');
-	  }
-          break;
-
-        case 4:  // Loc Function L-4-3-2-1
-          if(showLoc) {
-	    sbTemp.print(F(" L4321 "));
-	    sbTemp.printf(BYTE_TO_BINARY_PATTERN5, BYTE_TO_BINARY5(instrByte1));
-	  }
-	  locoInfoChanged = LocoTable::updateFunc(decoderAddress, instrByte1, 0)
-	           || LocoTable::updateFunc(decoderAddress, instrByte1, 1);
-	  if (showCommand && locoInfoChanged)
-	    sprintf(commandBuffer, "<f %d %d>", decoderAddress, 128 + (instrByte1 & 0B11111));
-          break;
-
-        case 5:  // Loc Function 8-7-6-5
-          if (bitRead(instrByte1, 4)) {
-            if(showLoc) {
-	      sbTemp.print(F("  8765  "));
-	      sbTemp.printf(BYTE_TO_BINARY_PATTERN4, BYTE_TO_BINARY4(instrByte1));
-	    }
-	    locoInfoChanged = LocoTable::updateFunc(decoderAddress, instrByte1, 5);
-	    if (showCommand && locoInfoChanged)
-	      sprintf(commandBuffer, "<f %d %d>", decoderAddress, 176 + (instrByte1 & 0B1111));
-          } else {  // Loc Function 12-11-10-9
-            if(showLoc) {
-	      sbTemp.print(F("  CBA9  "));
-	      sbTemp.printf(BYTE_TO_BINARY_PATTERN4, BYTE_TO_BINARY4(instrByte1));
-	    }
-	    locoInfoChanged = LocoTable::updateFunc(decoderAddress, instrByte1, 9);
-	    if (showCommand && locoInfoChanged)
-	      sprintf(commandBuffer, "<f %d %d>", decoderAddress, 160 + (instrByte1 & 0B1111));
-          }
-          break;
-
-        case 6:  // Future Expansions
-	  if (!showLoc)
-	    break;
-          switch (instrByte1 & 0B00011111) {
-            case 0:  // Binary State Control Instruction long form
-              sbTemp.print(F(" BinSLong "));
-              sbTemp.print(
-                  128 * ((uint16_t)dccPacket[inputPacket][pktByteCount - 1]) +
-                  (dccPacket[inputPacket][pktByteCount - 2] & 127));
-              if (bitRead (dccPacket[inputPacket][pktByteCount - 2], 7))
-                sbTemp.print(F(" On"));
-              else
-                sbTemp.print(F(" Off"));
-              break;
-            case 0B00011101:  // Binary State Control
-              sbTemp.print(F(" BinShort "));
-              sbTemp.print(dccPacket[inputPacket][pktByteCount - 1] &
-                           0B01111111);
-              if (bitRead (dccPacket[inputPacket][pktByteCount - 1], 7))
-                sbTemp.print(F(" On"));
-              else
-                sbTemp.print(F(" Off"));
-              break;
-            case 0B00011110:  // F13-F20 Function Control
-              sbTemp.print(F(" F20-F13 "));
-              sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
-              break;
-            case 0B00011111:  // F21-F28 Function Control
-              sbTemp.print(F(" F28-F21 "));
-              sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
-              break;
-            case 0B00011000:  // F29-F36 Function Control
-              sbTemp.print(F(" F36-F29 "));
-              sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
-              break;
-            case 0B00011001:  // F37-F44 Function Control
-              sbTemp.print(F(" F44-F37 "));
-              sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
-              break;
-            case 0B00011010:  // F45-F52 Function Control
-              sbTemp.print(F(" F52-F45 "));
-              sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
-              break;
-            case 0B00011011:  // F53-F60 Function Control
-              sbTemp.print(F(" F60-F53 "));
-              sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
-              break;
-            case 0B00011100:  // F61-F68 Function Control
-              sbTemp.print(F(" F68-F61 "));
-              sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
-              break;
-            default:
-              sbTemp.print(F(" Unknown"));
-              break;
-          }
-          break;
-
-        case 7:
-	  if (!showLoc)
-	    break;
-          sbTemp.print(F(" CV "));
-          value = dccPacket[inputPacket][pktByteCount - 1];
-          if (instrByte1 & 0B00010000) {  // CV Short Form
-            byte cvType = instrByte1 & 0B00001111;
-            switch (cvType) {
-              case 0B00000010:
-                sbTemp.print(F("23 "));
-                sbTemp.print(value);
-                break;
-              case 0B00000011:
-                sbTemp.print(F("24 "));
-                sbTemp.print(value);
-                break;
-              case 0B00001001:
-                sbTemp.print(F("Lock "));
-                sbTemp.print(value);
-                break;
-              default:
-                sbTemp.print(F("Unknown"));
-                sbTemp.print(' ');
-                sbTemp.print(value);
-                break;
-            }
-          } else {  // CV Long Form
-            int cvAddress = 256 * (instrByte1 & 0B00000011) +
-                            dccPacket[inputPacket][pktByteCount - 2] + 1;
-            sbTemp.print(cvAddress);
-            sbTemp.print(' ');
-            switch (instrByte1 & 0B00001100) {
-              case 0B00000100:  // Verify Byte
-                sbTemp.print(F("Verify "));
-                sbTemp.print(value);
-                break;
-              case 0B00001100:  // Write Byte
-                sbTemp.print(F("Write "));
-                sbTemp.print(value);
-                break;
-              case 0B00001000:  // Bit Write
-                sbTemp.print(F("Bit "));
-                if (value & 0B00010000)
-                  sbTemp.print(F("Vrfy "));
-                else
-                  sbTemp.print(F("Wrt "));
-                sbTemp.print(value & 0B00000111);
-                sbTemp.print(' ');
-                sbTemp.print((value & 0B00001000) >> 3);
-                break;
-              default:
-                sbTemp.print(F("Unknown"));
-                break;
-            }
-          }
-          break;
-
-        default:
-	  if(showLoc) sbTemp.print(F(" Unknown"));
-          break;
-      }
-      // locoInfoChanged is true when locoInfo has changed
-      // OR anything else has changed here.
-      outputDecodedData = locoInfoChanged;
+    if(showLoc) {
+      sbTemp.print(F("Loc "));
+      sbTemp.print(decoderAddress);
     }
+    byte instructionType = instrByte1 >> 5;
+    byte value;
+    switch (instructionType) {
+    case 0:
+      if(showLoc) sbTemp.print(F(" Control"));
+      break;
+      
+    case 1:                           // Advanced Operations
+    {
+      int8_t exSpeed;
+      if (instrByte1 == 0B00111111) {  // 128 speed steps
+	if (bitRead(dccPacket[inputPacket][pktByteCount - 1], 7)) {
+	  if(showLoc) sbTemp.print(F(" Fwd128 "));
+	} else {
+	  if(showLoc) sbTemp.print(F(" Rev128 "));
+	}
+	locoInfoChanged = LocoTable::updateLoco(decoderAddress, dccPacket[inputPacket][pktByteCount - 1]);
+	byte speed = dccPacket[inputPacket][pktByteCount - 1] & 0B01111111;
+	if (!speed) {
+	  exSpeed = 0;
+	  if(showLoc) sbTemp.print(F("Stop"));
+	} else if (speed == 1) {
+	  exSpeed = -1;
+	  if(showLoc) sbTemp.print(F("Estop"));
+	} else {
+	  exSpeed = speed -1;
+	  if(showLoc) sbTemp.print(exSpeed);
+	}
+	if (showCommand && locoInfoChanged)
+	  sprintf(commandBuffer, "<t %d %d %c>", decoderAddress, exSpeed,
+		  dccPacket[inputPacket][pktByteCount - 1] & ~0B01111111 ? '1' : '0');
+      } else if (instrByte1 == 0B00111110) {  // Speed Restriction
+	if (bitRead(dccPacket[inputPacket][pktByteCount - 1], 7)) {
+	  if(showLoc) sbTemp.print(F(" On "));
+	} else {
+	  if(showLoc) sbTemp.print(F(" Off "));
+	}
+	if(showLoc) sbTemp.print(dccPacket[inputPacket][pktByteCount - 1] & 0B01111111);
+      }
+    }
+    break;
+    
+    case 2:  // Reverse speed step
+    case 3:  // Forward speed step
+    {
+      int8_t exSpeed;
+      speed = ((instrByte1 & 0B00001111) << 1) + bitRead(instrByte1, 4); // reshuffle bits
+      // does not matter in what order the speed bits are saved in the table
+      locoInfoChanged = LocoTable::updateLoco(decoderAddress, instrByte1 & 0B00111111);
+      if (speed == 0 || speed == 1) {
+	exSpeed = 0;
+	if(showLoc) sbTemp.print(F(" Stop"));
+      } else if (speed == 2 || speed == 3) {
+	exSpeed = -1;
+	if(showLoc) sbTemp.print(F(" EStop"));
+      } else {
+	exSpeed = speed - 3;     // reduce to start from 1
+	if(showLoc) {
+	  sbTemp.print(instructionType == 2 ? F(" Rev28 ") : F(" Fwd28 "));
+	  sbTemp.print(exSpeed); // print in 28 step mode
+	}
+	exSpeed = exSpeed *9/2;  // scale to 126 speed steps
+      }
+      if (showCommand && locoInfoChanged)
+	sprintf(commandBuffer, "<t %d %d %c>", decoderAddress, exSpeed, //use in 126 step mode
+		instrByte1 & 0B00100000 ? '1' : '0');
+    }
+    break;
+    
+    case 4:  // Loc Function L-4-3-2-1
+      if(showLoc) {
+	sbTemp.print(F(" L4321 "));
+	sbTemp.printf(BYTE_TO_BINARY_PATTERN5, BYTE_TO_BINARY5(instrByte1));
+      }
+      locoInfoChanged = LocoTable::updateFunc(decoderAddress, instrByte1, 0)
+	|| LocoTable::updateFunc(decoderAddress, instrByte1, 1);
+      if (showCommand && locoInfoChanged)
+	sprintf(commandBuffer, "<f %d %d>", decoderAddress, 128 + (instrByte1 & 0B11111));
+      break;
+      
+    case 5:  // Loc Function 8-7-6-5
+      if (bitRead(instrByte1, 4)) {
+	if(showLoc) {
+	  sbTemp.print(F("  8765  "));
+	  sbTemp.printf(BYTE_TO_BINARY_PATTERN4, BYTE_TO_BINARY4(instrByte1));
+	}
+	locoInfoChanged = LocoTable::updateFunc(decoderAddress, instrByte1, 5);
+	if (showCommand && locoInfoChanged)
+	  sprintf(commandBuffer, "<f %d %d>", decoderAddress, 176 + (instrByte1 & 0B1111));
+      } else {  // Loc Function 12-11-10-9
+	if(showLoc) {
+	  sbTemp.print(F("  CBA9  "));
+	  sbTemp.printf(BYTE_TO_BINARY_PATTERN4, BYTE_TO_BINARY4(instrByte1));
+	}
+	locoInfoChanged = LocoTable::updateFunc(decoderAddress, instrByte1, 9);
+	if (showCommand && locoInfoChanged)
+	  sprintf(commandBuffer, "<f %d %d>", decoderAddress, 160 + (instrByte1 & 0B1111));
+      }
+      break;
+      
+    case 6:  // Future Expansions
+      if (!showLoc)
+	break;
+      switch (instrByte1 & 0B00011111) {
+      case 0:  // Binary State Control Instruction long form
+	sbTemp.print(F(" BinSLong "));
+	sbTemp.print(
+	  128 * ((uint16_t)dccPacket[inputPacket][pktByteCount - 1]) +
+	  (dccPacket[inputPacket][pktByteCount - 2] & 127));
+	if (bitRead (dccPacket[inputPacket][pktByteCount - 2], 7))
+	  sbTemp.print(F(" On"));
+	else
+	  sbTemp.print(F(" Off"));
+	break;
+      case 0B00011101:  // Binary State Control
+	sbTemp.print(F(" BinShort "));
+	sbTemp.print(dccPacket[inputPacket][pktByteCount - 1] &
+		     0B01111111);
+	if (bitRead (dccPacket[inputPacket][pktByteCount - 1], 7))
+	  sbTemp.print(F(" On"));
+	else
+	  sbTemp.print(F(" Off"));
+	break;
+      case 0B00011110:  // F13-F20 Function Control
+	sbTemp.print(F(" F20-F13 "));
+	sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
+	break;
+      case 0B00011111:  // F21-F28 Function Control
+	sbTemp.print(F(" F28-F21 "));
+	sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
+	break;
+      case 0B00011000:  // F29-F36 Function Control
+	sbTemp.print(F(" F36-F29 "));
+	sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
+	break;
+      case 0B00011001:  // F37-F44 Function Control
+	sbTemp.print(F(" F44-F37 "));
+	sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
+	break;
+      case 0B00011010:  // F45-F52 Function Control
+	sbTemp.print(F(" F52-F45 "));
+	sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
+	break;
+      case 0B00011011:  // F53-F60 Function Control
+	sbTemp.print(F(" F60-F53 "));
+	sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
+	break;
+      case 0B00011100:  // F61-F68 Function Control
+	sbTemp.print(F(" F68-F61 "));
+	sbTemp.print(dccPacket[inputPacket][pktByteCount - 1], BIN);
+	break;
+      default:
+	sbTemp.print(F(" Unknown"));
+	break;
+      }
+      break;
+      
+    case 7:
+      if (!showLoc)
+	break;
+      sbTemp.print(F(" CV "));
+      value = dccPacket[inputPacket][pktByteCount - 1];
+      if (instrByte1 & 0B00010000) {  // CV Short Form
+	byte cvType = instrByte1 & 0B00001111;
+	switch (cvType) {
+	case 0B00000010:
+	  sbTemp.print(F("23 "));
+	  sbTemp.print(value);
+	  break;
+	case 0B00000011:
+	  sbTemp.print(F("24 "));
+	  sbTemp.print(value);
+	  break;
+	case 0B00001001:
+	  sbTemp.print(F("Lock "));
+	  sbTemp.print(value);
+	  break;
+	default:
+	  sbTemp.print(F("Unknown"));
+	  sbTemp.print(' ');
+	  sbTemp.print(value);
+	  break;
+	}
+      } else {  // CV Long Form
+	int cvAddress = 256 * (instrByte1 & 0B00000011) +
+	  dccPacket[inputPacket][pktByteCount - 2] + 1;
+	sbTemp.print(cvAddress);
+	sbTemp.print(' ');
+	switch (instrByte1 & 0B00001100) {
+	case 0B00000100:  // Verify Byte
+	  sbTemp.print(F("Verify "));
+	  sbTemp.print(value);
+	  break;
+	case 0B00001100:  // Write Byte
+	  sbTemp.print(F("Write "));
+	  sbTemp.print(value);
+	  break;
+	case 0B00001000:  // Bit Write
+	  sbTemp.print(F("Bit "));
+	  if (value & 0B00010000)
+	    sbTemp.print(F("Vrfy "));
+	  else
+	    sbTemp.print(F("Wrt "));
+	  sbTemp.print(value & 0B00000111);
+	  sbTemp.print(' ');
+	  sbTemp.print((value & 0B00001000) >> 3);
+	  break;
+	default:
+	  sbTemp.print(F("Unknown"));
+	  break;
+	}
+      }
+      break;
+      
+    default:
+      if(showLoc) sbTemp.print(F(" Unknown"));
+      break;
+    }
+    // locoInfoChanged is true when locoInfo has changed
+    // OR anything else has changed here.
+    outputDecodedData = locoInfoChanged;
   }
 
   if (outputDecodedData) {
