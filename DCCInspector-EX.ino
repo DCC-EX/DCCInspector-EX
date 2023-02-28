@@ -180,7 +180,6 @@ volatile byte strictMode =
     1;  // rejects frames containing out-of-spec bit lengths
 
 // Variables used by main loop
-byte packetHashListSize = 32;  // DCC packets checksum buffer size
 bool showLoc = SHOWLOC;
 bool showAcc = SHOWACC;
 bool showHeartBeat = SHOWHEARTBEAT;
@@ -192,8 +191,6 @@ bool showBinary = SHOWBINARY;
 
 byte inputPacket = 0;  // Index of next packet to be analysed in dccPacket array
 byte pktByteCount = 0;
-int packetHashListCounter = 0;
-unsigned int packetHashList[64];
 bool calibrated = false;
 unsigned long lastRefresh = 0;
 unsigned int inactivityCount = 0;
@@ -629,17 +626,6 @@ void printPacketBits(Print &output, int index) {
       b <<= 1;
     }
   }
-}
-
-//=======================================================================
-// ClearDCCData clears the contents of the packetHashList array and resets
-// the statistics.
-// The packetHashList array normally contains the checksums of received
-// DCC packets, and is used to suppress the decoding of repeated packets.
-
-void clearHashList() {
-  for (byte n = 0; n < packetHashListSize; n++) packetHashList[n] = 0;
-  packetHashListCounter = 0;
 }
 
 //=======================================================================
@@ -1087,26 +1073,6 @@ bool processCommands() {
         Serial.println(F("Refresh Time = 16s"));
         DCCStatistics.setRefreshTime(16);
         break;
-      case 54:
-        Serial.println(F("Buffer Size = 4"));
-        packetHashListSize = 2;
-        break;
-      case 55:
-        Serial.println(F("Buffer Size = 8"));
-        packetHashListSize = 8;
-        break;
-      case 56:
-        Serial.println(F("Buffer Size = 16"));
-        packetHashListSize = 16;
-        break;
-      case 57:
-        Serial.println(F("Buffer Size = 32"));
-        packetHashListSize = 32;
-        break;
-      case 48:
-        Serial.println(F("Buffer Size = 64"));
-        packetHashListSize = 64;
-        break;
       case 'a':
       case 'A':
         showAcc = !showAcc;
@@ -1182,11 +1148,6 @@ bool processCommands() {
         Serial.println(F("3 = 4s (default)"));
         Serial.println(F("4 = 8s"));
         Serial.println(F("5 = 16s"));
-        Serial.println(F("6 = 4 DCC packet buffer"));
-        Serial.println(F("7 = 8"));
-        Serial.println(F("8 = 16"));
-        Serial.println(F("9 = 32 (default)"));
-        Serial.println(F("0 = 64"));
         Serial.println(F("a = show accessory packets toggle"));
         Serial.println(F("b = show half-bit counts by length toggle"));
         Serial.println(F("c = show cpu/irc usage in sniffer"));
@@ -1209,9 +1170,7 @@ bool processCommands() {
         Serial.print(showAcc);
         Serial.print(F(" / RefreshTime "));
         Serial.print(DCCStatistics.getRefreshTime());
-        Serial.print(F("s / BufferSize "));
-        Serial.print(packetHashListSize);
-        Serial.print(F(" / Filter "));
+        Serial.print(F("s / Filter "));
         Serial.print(filterInput);
         Serial.print(F(" / Strict Bit Validation "));
         Serial.println(strictMode);
