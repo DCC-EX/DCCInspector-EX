@@ -24,7 +24,7 @@
     #define ESP32
   #endif
 #elif defined(ESP8266)
-  #define LED_BUILTIN 13
+  // nothing needs done here.
 #elif defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_NANO)
   #define ARDUINO_UNO_NANO
 #elif defined(ARDUINO_AVR_MEGA2560)
