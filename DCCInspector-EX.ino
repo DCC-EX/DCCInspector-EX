@@ -228,9 +228,25 @@ void setup() {
           "    **"));
   }
 
-// Start OLED display (if required).
 #if defined(USE_OLED)
+  // Start OLED display (if required).
   OledDisplay.begin(SDA_OLED, SCL_OLED);
+#if defined(ARDUINO_HELTEC_WIFI_KIT_32)
+  // Read battery voltage from pin GPIO37
+  // The battery measurement is enabled via pin GPIO21
+  digitalWrite(21, 0);
+  analogSetWidth(12);  // 12 bits = 0-4095
+  analogSetPinAttenuation(37, ADC_11db);
+  adcAttachPin(37);
+
+  uint32_t batValue = analogRead(37);
+  // An input value of around 2600 is obtained for a
+  // a measured battery voltage of 4100mV.  
+  uint16_t batMV = batValue * 41 / 26;
+  if (batMV < 3400) OledDisplay.append("Battery Low");
+  digitalWrite(21, 1);  // Disable battery monitor
+
+#endif
   OledDisplay.append("Initialising..");
 #endif
 
@@ -325,6 +341,13 @@ void loop() {
 #endif
       Serial.println(F("*** Inactivity detected -- going to sleep ***"));
       delay(5000);
+#if defined(ARDUINO_HELTEC_WIFI_KIT_32)
+      // Turn off WiFi
+      WiFi.disconnect(true);
+      // Turn off Vext power to screen on Heltec Kit 32 V2
+      pinMode(21, OUTPUT);
+      digitalWrite(21, 1);
+#endif
       esp_deep_sleep_start();
     }
 #endif

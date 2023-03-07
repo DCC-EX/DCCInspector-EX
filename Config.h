@@ -24,7 +24,7 @@
     #define ESP32
   #endif
 #elif defined(ESP8266)
-// nothing needs done here.
+  #define LED_BUILTIN 13
 #elif defined(ARDUINO_AVR_UNO) || defined(ARDUINO_AVR_NANO)
   #define ARDUINO_UNO_NANO
 #elif defined(ARDUINO_AVR_MEGA2560)
@@ -89,7 +89,7 @@
   #define OLED_I2CADDRESS 0x3C
   #define SCREEN_WIDTH 128
   #define SCREEN_HEIGHT 32
-#elif defined(ESP32)    // Heltec Kit 32 has pins 4/15 predefined for I2C.
+#elif defined(ARDUINO_HELTEC_WIFI_KIT_32)    // Heltec Kit 32 has pins 4/15 predefined for I2C.
   // #define SDA_OLED 4
   // #define SCL_OLED 15
   #define OLED_RESET 16
