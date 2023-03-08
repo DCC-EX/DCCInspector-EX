@@ -82,6 +82,10 @@
 //  (ESP or Mega only).
 #define USE_OLED        
 
+#if defined(ARDUINO_heltec_wifi_kit_32) 
+#define ARDUINO_HELTEC_WIFI_KIT_32
+#endif
+
 #if defined(ESP8266) // Heltec Kit 8 has pins 4/15 for I2C.
   #define SDA_OLED 4   
   #define SCL_OLED 5

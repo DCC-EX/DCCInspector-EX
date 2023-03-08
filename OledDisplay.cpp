@@ -21,11 +21,11 @@
  * is used for scrolling the display.
  */
 
+#include "OledDisplay.h"
+
 #include "Config.h"
 
 #ifdef USE_OLED
-
-#include "OledDisplay.h"
 
 // Function called to initialise the object instance.  
 //  Connects to the OLED display and puts it into a 
