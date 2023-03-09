@@ -861,8 +861,10 @@ void DecodePacket(Print &output, int inputPacket, bool newPeriod) {
     
     case 4:  // Loc Function L-4-3-2-1
       if(showLoc) {
+	char str[6];
 	sbTemp.print(F(" L4321 "));
-	sbTemp.printf(BYTE_TO_BINARY_PATTERN5, BYTE_TO_BINARY5(instrByte1));
+	sprintf(str, BYTE_TO_BINARY_PATTERN5, BYTE_TO_BINARY5(instrByte1));
+	sbTemp.print(str);
       }
       locoInfoChanged = LocoTable::updateFunc(decoderAddress, instrByte1, 0)
 	|| LocoTable::updateFunc(decoderAddress, instrByte1, 1);
@@ -873,16 +875,20 @@ void DecodePacket(Print &output, int inputPacket, bool newPeriod) {
     case 5:  // Loc Function 8-7-6-5
       if (bitRead(instrByte1, 4)) {
 	if(showLoc) {
+	  char str[6];
 	  sbTemp.print(F("  8765  "));
-	  sbTemp.printf(BYTE_TO_BINARY_PATTERN4, BYTE_TO_BINARY4(instrByte1));
+	  sprintf(str, BYTE_TO_BINARY_PATTERN4, BYTE_TO_BINARY4(instrByte1));
+	  sbTemp.print(str);
 	}
 	locoInfoChanged = LocoTable::updateFunc(decoderAddress, instrByte1, 5);
 	if (showCommand && locoInfoChanged)
 	  sprintf(commandBuffer, "<f %d %d>", decoderAddress, 176 + (instrByte1 & 0B1111));
       } else {  // Loc Function 12-11-10-9
 	if(showLoc) {
+	  char str[6];
 	  sbTemp.print(F("  CBA9  "));
-	  sbTemp.printf(BYTE_TO_BINARY_PATTERN4, BYTE_TO_BINARY4(instrByte1));
+	  sprintf(str, BYTE_TO_BINARY_PATTERN4, BYTE_TO_BINARY4(instrByte1));
+	  sbTemp.print(str);
 	}
 	locoInfoChanged = LocoTable::updateFunc(decoderAddress, instrByte1, 9);
 	if (showCommand && locoInfoChanged)
