@@ -19,6 +19,10 @@
 #define config_h
 
 // The following logic should work for all supported platforms, hopefully.
+#if defined(ARDUINO_heltec_wifi_kit_32) || defined(ARDUINO_WIFI_KIT_32)
+#define ARDUINO_HELTEC_WIFI_KIT_32
+#endif
+
 #if defined(ESP_PLATFORM)
   #if !defined(ESP32)
     #define ESP32
@@ -81,10 +85,6 @@
 // Uncomment following lines to enable OLED output on pins SDA_OLED and SCL_OLED.
 //  (ESP or Mega only).
 #define USE_OLED        
-
-#if defined(ARDUINO_heltec_wifi_kit_32) 
-#define ARDUINO_HELTEC_WIFI_KIT_32
-#endif
 
 #if defined(ESP8266) // Heltec Kit 8 has pins 4/15 for I2C.
   #define SDA_OLED 4   
