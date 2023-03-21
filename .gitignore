@@ -6,3 +6,4 @@
 .pio
 .vscode
 .vscode/*
+**/hardware/*backups/
