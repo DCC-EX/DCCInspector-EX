@@ -67,7 +67,7 @@ class HttpManagerClass {
     static void handleNotFound();
     static void handleData();
     #if defined(ESP32)
-    static void WiFiEvent (WiFiEvent_t event, system_event_info_t info);
+    static void WiFiEvent (arduino_event_id_t event);
     #endif
     // Flag whether connected or not.
     bool connected = false; 

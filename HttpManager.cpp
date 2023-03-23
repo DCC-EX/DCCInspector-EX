@@ -51,7 +51,9 @@ WebServer HttpManagerClass::server;
 //  It sends a static web page that includes an updating IFRAME where the dynamic data
 //  will be displayed.
 void HttpManagerClass::handleRoot() {
+#if defined(LED_BUILTIN)
   digitalWrite(LED_BUILTIN, 1);
+#endif
   processArguments();
   int refreshTime = DCCStatistics.getRefreshTime();
   String temp = 
@@ -106,19 +108,27 @@ void HttpManagerClass::handleRoot() {
   server.send(200, "text/html", temp);
   temp = "";  // release space held
 
+#if defined(LED_BUILTIN)
   digitalWrite(LED_BUILTIN, 0);
+#endif
 }
 
 // Function to handle the request for dynamic data (http://server/data).
 void HttpManagerClass::handleData() {
+#if defined(LED_BUILTIN)
   digitalWrite(LED_BUILTIN, 1);
+#endif
   server.send(200, "text/html", HttpManager.getHtmlString());
+#if defined(LED_BUILTIN)
   digitalWrite(LED_BUILTIN, 0);
+#endif
 }
 
 // Function to handle any other requests.  Returns "404 Not Found".
 void HttpManagerClass::handleNotFound() {
+#if defined(LED_BUILTIN)
   digitalWrite(LED_BUILTIN, 1);
+#endif
   String message = "File Not Found\n\n";
   message += "URI: ";
   message += server.uri();
@@ -133,7 +143,9 @@ void HttpManagerClass::handleNotFound() {
   }
 
   server.send(404, "text/plain", message);
+#if defined(LED_BUILTIN)
   digitalWrite(LED_BUILTIN, 0);
+#endif
 }
 
 void HttpManagerClass::processArguments() {
@@ -146,7 +158,7 @@ void HttpManagerClass::processArguments() {
 }
 
 #if defined(ESP32)
-void HttpManagerClass::WiFiEvent (WiFiEvent_t event, system_event_info_t info) {
+void HttpManagerClass::WiFiEvent (arduino_event_id_t event) {
   switch (event) {
     case SYSTEM_EVENT_STA_WPS_ER_SUCCESS:
       Serial.print(F("[WPS Successful]"));
@@ -184,7 +196,6 @@ bool HttpManagerClass::begin(const char *ssid, const char *password, const char 
   #if defined(ESP32)
   esp_wps_config_t config;
   memset(&config, 0, sizeof(config));
-  config.crypto_funcs = &g_wifi_default_wps_crypto_funcs;
   config.wps_type = WPS_TYPE_PBC;
 
   WiFi.onEvent (WiFiEvent);

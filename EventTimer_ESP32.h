@@ -42,7 +42,7 @@
  */
 typedef bool EventHandler(unsigned long eventInterval);
 
-static void IRAM_ATTR isr_handler(void *);
+static bool IRAM_ATTR captureCallbackFunction(mcpwm_unit_t mcpwm, mcpwm_capture_channel_id_t cap_channel, const cap_event_data_t *edata, void *user_data);
 
 class EventTimerClass {
 public:
@@ -60,13 +60,19 @@ public:
     // is scheduled.  The interrupt response code is responsible for retrieving the captured value.
     mcpwm_gpio_init(MCPWM_UNIT_0, MCPWM_CAP_0, INPUTPIN);
     mcpwm_gpio_init(MCPWM_UNIT_0, MCPWM_CAP_1, INPUTPIN);
-    mcpwm_capture_enable(MCPWM_UNIT_0, MCPWM_SELECT_CAP0, MCPWM_POS_EDGE, 0);  
-            //capture signal on positive edge, prescale = 0 i.e. 800,000,000 counts is equal to one second
-    mcpwm_capture_enable(MCPWM_UNIT_0, MCPWM_SELECT_CAP1, MCPWM_NEG_EDGE, 0);  
-            //capture signal on negative edge, prescale = 0 i.e. 800,000,000 counts is equal to one second
+    mcpwm_capture_config_t cap_conf;
+    cap_conf.capture_cb = captureCallbackFunction;
+    cap_conf.user_data = NULL;
+    cap_conf.cap_prescale = 1;  //no prescale, i.e. 800,000,000 counts equals one second.
+    cap_conf.cap_edge = MCPWM_POS_EDGE;
+    mcpwm_capture_enable_channel(MCPWM_UNIT_0, MCPWM_SELECT_CAP0, &cap_conf);  
+            //capture signal on positive edge
+    cap_conf.cap_edge = MCPWM_NEG_EDGE;
+    mcpwm_capture_enable_channel(MCPWM_UNIT_0, MCPWM_SELECT_CAP1, &cap_conf);  
+            //capture signal on negative edge
     MCPWM0.int_ena.cap0_int_ena = 1;                            // Enable interrupt on CAP0 signal
     MCPWM0.int_ena.cap1_int_ena = 1;                            // Enable interrupt on CAP1 signal
-    mcpwm_isr_register(MCPWM_UNIT_0, isr_handler, NULL, ESP_INTR_FLAG_IRAM, NULL); // Set ISR Handler
+    //mcpwm_isr_register(MCPWM_UNIT_0, isr_handler, NULL, ESP_INTR_FLAG_IRAM, NULL); // Set ISR Handler
     return true;
   };
 
@@ -84,24 +90,11 @@ public:
   //  and to invoke the user program's handler.  The user's handler is passed the 
   //  number of ticks elapsed since the last valid interrupt.  It returns true/false to 
   //  indicate if this interrupt is deemed to be 'valid' or not.
-   void IRAM_ATTR processInterrupt() {
+   void IRAM_ATTR processInterrupt(mcpwm_capture_channel_id_t cap_channel) {
     // Get current micros() value to support elapsedTicksSinceLastEvent().
     thisEventMicros = micros();
 
-    // Check which interrupt is pending.
-    mcpwm_capture_signal_t capture = MCPWM_SELECT_CAP0;
-    if (MCPWM0.int_st.cap0_int_st) {
-      capture = MCPWM_SELECT_CAP0;
-      MCPWM0.int_clr.cap0_int_clr = 1; // Clear capture 0 interrupt
-    } else if (MCPWM0.int_st.cap1_int_st) {
-      capture = MCPWM_SELECT_CAP1;
-      MCPWM0.int_clr.cap1_int_clr = 1; // Clear capture 1 interrupt
-    } else
-      return;         // No interrupt pending.
-      
-    //unsigned long edge = mcpwm_capture_signal_get_edge(MCPWM_UNIT_0, capture); // 1=positive edge, 2=negative edge
-
-    unsigned long thisEventTicks = mcpwm_capture_signal_get_value(MCPWM_UNIT_0, capture); //get capture signal counter value
+    unsigned long thisEventTicks = mcpwm_capture_signal_get_value(MCPWM_UNIT_0, cap_channel); //get capture signal counter value
     unsigned long eventInterval = thisEventTicks - lastValidEventTicks;
     bool accepted = callUserHandler(eventInterval);
     if (accepted) {
@@ -128,8 +121,9 @@ private:
 
 EventTimerClass EventTimer;
 
-static void IRAM_ATTR isr_handler(void *) {
-  EventTimer.processInterrupt();
+static bool IRAM_ATTR captureCallbackFunction(mcpwm_unit_t mcpwm, mcpwm_capture_channel_id_t cap_channel, const cap_event_data_t *edata, void *user_data) {
+  EventTimer.processInterrupt(cap_channel);
+  return false;
 }
 
 #endif
