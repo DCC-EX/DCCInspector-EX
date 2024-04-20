@@ -33,6 +33,8 @@
   #define ARDUINO_UNO_NANO
 #elif defined(ARDUINO_AVR_MEGA2560)
   #define ARDUINO_MEGA
+#elif defined(ARDUINO_AVR_NANO_EVERY)
+  #define ARDUINO_NANO_EVERY
 #else
   #error "Platform not recognised"
 #endif
@@ -63,7 +65,7 @@
 //    ESP8266:                       2
 //    Other:                         2
 #if defined(USETIMER)
-  #if defined(ARDUINO_UNO_NANO)
+  #if defined(ARDUINO_UNO_NANO) || defined(ARDUINO_NANO_EVERY)
     #define INPUTPIN 8
   #elif defined(ARDUINO_MEGA)
     #define INPUTPIN 49
@@ -84,7 +86,7 @@
 
 // Uncomment following lines to enable OLED output on pins SDA_OLED and SCL_OLED.
 //  (ESP or Mega only).
-#define USE_OLED        
+// #define USE_OLED        
 
 #if defined(ESP8266) // Heltec Kit 8 has pins 4/15 for I2C.
   #define SDA_OLED 4   
@@ -119,7 +121,7 @@
 //#define LEDPIN_FAULT 6      // Lights when a checksum error or glitch is encountered.
 
 // Uncomment the following line to enable HTTP Server (ESP32 or ESP8266 only).
-#define USE_HTTPSERVER
+// #define USE_HTTPSERVER
 
 // SSID and password can be configured here.  However, the server will, by preference,
 // connect using the same credentials as last time; if that fails it will try WPS; 
@@ -131,15 +133,15 @@
 // through this name with a ".local" suffix (e.g. http://DccInspector.local/).
 #define DNSNAME "DccInspector"
 
-// OLED isn't supported on Uno or Nano
-#if defined(ARDUINO_UNO_NANO)
+// OLED isn't supported on Uno or Nano or Nano Every
+#if defined(ARDUINO_UNO_NANO) || defined(ARDUINO_NANO_EVERY)
   #if defined(USE_OLED)
     #undef USE_OLED
   #endif
 #endif
 
-// HTTP Server isn't supported on Uno or Nano or Mega
-#if defined(ARDUINO_UNO_NANO) || defined(ARDUINO_MEGA)
+// HTTP Server isn't supported on Uno or Nano or Mega or Nano Every
+#if defined(ARDUINO_UNO_NANO) || defined(ARDUINO_MEGA) || defined(ARDUINO_NANO_EVERY)
   #if defined(USE_HTTPSERVER)
     #undef USE_HTTPSERVER
   #endif
