@@ -87,7 +87,7 @@
 
 // Uncomment following lines to enable OLED output on pins SDA_OLED and SCL_OLED.
 //  (ESP or Mega only).
-// #define USE_OLED        
+#define USE_OLED        
 
 #if defined(ESP8266) // Heltec Kit 8 has pins 4/15 for I2C.
   #define SDA_OLED 4   
@@ -122,7 +122,7 @@
 //#define LEDPIN_FAULT 6      // Lights when a checksum error or glitch is encountered.
 
 // Uncomment the following line to enable HTTP Server (ESP32 or ESP8266 only).
-// #define USE_HTTPSERVER
+#define USE_HTTPSERVER
 
 // SSID and password can be configured here.  However, the server will, by preference,
 // connect using the same credentials as last time; if that fails it will try WPS; 
