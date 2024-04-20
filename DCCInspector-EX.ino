@@ -15,9 +15,6 @@
  * along with this software.  If not, see
  * <http://www.gnu.org/licenses/>.
  */
-/* Boards:
- * - Arduino Nano Every * arduino:megaavr:nona4809:mode=off,CONSOLEBAUD=115200
- */
 
 ///////////////////////////////////////////////////////
 //
