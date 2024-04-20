@@ -25,6 +25,8 @@
 
 #if defined(ARDUINO_UNO_NANO) || defined(ARDUINO_AVR_MEGA2560)
   #include "EventTimer_AtMega.h"
+#elif defined(ARDUINO_NANO_EVERY)
+  #include "EventTimer_AtMega0series.h"
 #elif defined(ESP32)
   #include "EventTimer_ESP32.h"
 #else
