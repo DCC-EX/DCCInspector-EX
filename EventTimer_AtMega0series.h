@@ -36,33 +36,11 @@
 
 #include <Arduino.h>
 #include "Config.h"
+#include "Event.h"
 
-#define GPIO_PREFER_SPEED
-#include <DIO2.h>
+#define TICKSPERMICROSEC 8   // 8 (125ns) or 16 (62.5ns)
 
-#define TICKSPERMICROSEC 2   // 2 (0.5us) or 16 (62.5ns)
-
-#if defined(ARDUINO_UNO_NANO)
-  #define ICP_INPUTPIN 8
-  #define TCNTn TCNT1 // TimerN Counter Register
-  #define ICRn ICR1   // TimerN Input Change Register
-  #define TCCRnA TCCR1A // TimerN configuration register
-  #define TCCRnB TCCR1B // TimerN configuration register
-  #define TIMSKn TIMSK1 // TimerN interrupt register
-  #define ICIEn ICIE1  // Interrupt mask
-  #define ICESn ICES1  // Mask
-  #define CAPTURE_INTERRUPT TIMER1_CAPT_vect  // ISR vector
-#elif defined (ARDUINO_MEGA)
-  #define ICP_INPUTPIN 49 
-  #define TCNTn TCNT4 // TimerN Counter Register
-  #define ICRn ICR4   // TimerN Input Change Register
-  #define TCCRnA TCCR4A // TimerN configuration register
-  #define TCCRnB TCCR4B // TimerN configuration register
-  #define TIMSKn TIMSK4 // TimerN interrupt register
-  #define ICIEn ICIE4  // Interrupt mask
-  #define ICESn ICES4  // Mask
-  #define CAPTURE_INTERRUPT TIMER4_CAPT_vect  // ISR vector
-#else
+#if not defined(ARDUINO_NANO_EVERY)
   #error "Architecture not supported by EventTimer library."
 #endif
 
@@ -81,32 +59,47 @@ public:
   // Initialise the object instance, validating that the input pin is
   //  correct and noting the reference to the user handler for future use.
   bool begin(int pin, EventHandler userHandler) {
-    if (pin != ICP_INPUTPIN) {
+#if defined(GPIO_PREFER_SPEED)
+    if (pin != INPUTPIN) {
+      Serial.println(F("ERROR: Cannot use fast GPIO with pin != INPUTPIN"));
+      Serial.print(F("pin="));
+      Serial.println(pin);
+      Serial.print(F("INPUTPIN="));
+      Serial.println(INPUTPIN);
+      return false;
+    }
+#endif
+    Event & myEvent = Event::assign_generator_pin(pin);
+    if (myEvent.get_channel_number() == 255) {
       Serial.print(F("ERROR: pin=")); 
       Serial.print(pin); 
-      Serial.print(F(", ICP=")); 
-      Serial.println(ICP_INPUTPIN);
       return false;
     }
 
+    myEvent.set_user(event::user::tcb2_capt);
+    
     this->pin = pin;
     this->callUserHandler = userHandler;
 
     // Set up input capture.
-    // Configure Timer to increment TCNTn on a 2MHz clock,
+    // Configure Timer to increment TCNTn on an 8MHz clock,
     // (every 0.5us), or 16MHz (every 62.5ns), no interrupt.
     // Use Input Capture Pin ICP to capture time of input change
     // and interrupt the CPU.
-    TCCRnA = 0;
-    #if TICKSPERMICROSEC==2
-    TCCRnB = (1 << CS11); // Prescaler CLK/8
+    #if TICKSPERMICROSEC==8
+    TCB2.CTRLA = TCB_CLKSEL_CLKDIV2_gc | TCB_ENABLE_bm; // Prescaler CLK/2
     #elif TICKSPERMICROSEC==16
-    TCCRnB = (1 << CS10); // Prescaler CLK/1
+    TCB2.CTRLA = TCB_CLKSEL_CLKDIV1_gc | TCB_ENABLE_bm; // Prescaler CLK/1
     #else
-    #error "TICKSPERMICROSEC" not 2 or 16.
-    #endif  
-    TIMSKn = (1 << ICIEn); // Input capture interrupt enable
+    #error "TICKSPERMICROSEC" not 8 or 16.
+    #endif
+    TCB2.CTRLB = TCB_CNTMODE_CAPT_gc;            // Setup Timer B2 for capture mode
+    TCB2.EVCTRL = TCB_FILTER_bm | TCB_CAPTEI_bm; // Enable input capture filter and event
+    TCB2.INTCTRL = TCB_CAPT_bm;                  // Enable input capture interrupt
+    TCB2.INTFLAGS = TCB_CAPT_bm;                 // Clear interrupt flag
 
+    myEvent.start();
+    
     return true;
   };
   
@@ -114,7 +107,7 @@ public:
   //  for determining how much time has elapsed within the interrupt handler since
   //  the interrupt was triggered.
   inline unsigned long elapsedTicksSinceLastEvent() {
-    return (unsigned int)(TCNTn - thisEventTicks);
+    return (unsigned int)(TCB2.CNT - thisEventTicks);
   };
   
   // Function called from the interrupt handler to calculate the gap between interrupts,
@@ -124,14 +117,14 @@ public:
   void processInterrupt() {
     // Time-critical bits.
     unsigned long thisEventMicros = micros();
-    thisEventTicks = ICRn;
-    byte diginState = digitalRead2(this->pin);
+    thisEventTicks = TCB2.CCMP;
+    byte diginState = digitalRead(INPUTPIN);
 
     // Set up input capture for next edge.
     if (diginState) 
-      TCCRnB &= ~(1 << ICESn); // Capture next falling edge on input
+      TCB2.EVCTRL |= TCB_EDGE_bm; // Capture next falling edge on input
     else
-      TCCRnB |= (1 << ICESn); // Capture next rising edge on input
+      TCB2.EVCTRL &= ~TCB_EDGE_bm; // Capture next rising edge on input
 
     // Initially estimate time ticks using micros() values.
     unsigned long eventSpacing = (thisEventMicros - lastValidEventMicros) * TICKSPERMICROSEC;
@@ -148,7 +141,7 @@ public:
   };
 
   // Utility function to return the number of timer ticks per microsecond.  
-  //   On the AtMega, this is 2 or 16, depending on the timer pre-scaler setting.
+  //   On the AtMega 0 series, this is 8 or 16, depending on the timer pre-scaler setting.
   inline unsigned int ticksPerMicrosec() {
     return TICKSPERMICROSEC;
   };
@@ -170,7 +163,7 @@ private:
 EventTimerClass EventTimer;
 
 // Interrupt handler for input capture event
-ISR(CAPTURE_INTERRUPT) {
+ISR(TCB2_INT_vect) {
   EventTimer.processInterrupt();
 }
 

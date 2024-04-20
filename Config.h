@@ -33,7 +33,7 @@
   #define ARDUINO_UNO_NANO
 #elif defined(ARDUINO_AVR_MEGA2560)
   #define ARDUINO_MEGA
-#elif defined(ARDUINO_AVR_NANO_EVERY)
+#elif defined(NANO_EVERY_PINOUT)
   #define ARDUINO_NANO_EVERY
 #else
   #error "Platform not recognised"
@@ -52,6 +52,7 @@
 // Works on Arduino Uno (Timer1/pin D8)
 //          Arduino Nano (Timer1/pin D8)
 //          Arduino Mega (Timer4/pin D49)
+//          Arduino Nano Every (Timer B2/any pin)
 // If we don't use this, then the selected input pin must support change interrupt 
 // (defaults to pin D2 on Uno, Nano and Mega, GPIO2 on ESP8266 and GPIO5 on ESP32.
 #define USETIMER 

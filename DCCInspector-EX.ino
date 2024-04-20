@@ -128,9 +128,10 @@
 #include <DIO2.h>
 #define digitalWrite(pin, state) digitalWrite2(pin, state)
 #define digitalRead(pin) digitalRead2(pin)
-#elif defined(ARDUINO_NANO_EVERY)
+#elif defined(USE_DIO2) && defined(ARDUINO_NANO_EVERY)
 #define digitalWrite(pin, state) digitalWriteFast(pin, state)
 #define digitalRead(pin) digitalReadFast(pin)
+#define GPIO_PREFER_SPEED
 #endif
 
 #ifdef USETIMER
