@@ -82,9 +82,9 @@ public:
     this->callUserHandler = userHandler;
 
     // Set up input capture.
-    // Configure Timer to increment TCNTn on an 8MHz clock,
-    // (every 0.5us), or 16MHz (every 62.5ns), no interrupt.
-    // Use Input Capture Pin ICP to capture time of input change
+    // Configure Timer B2 to increment CNT on an 8MHz clock,
+    // (every 125ns), or 16MHz (every 62.5ns), no interrupt.
+    // Use Input Capture Pin to capture time of input change
     // and interrupt the CPU.
     #if TICKSPERMICROSEC==8
     TCB2.CTRLA = TCB_CLKSEL_CLKDIV2_gc | TCB_ENABLE_bm; // Prescaler CLK/2
@@ -118,7 +118,11 @@ public:
     // Time-critical bits.
     unsigned long thisEventMicros = micros();
     thisEventTicks = TCB2.CCMP;
+#if defined(GPIO_PREFER_SPEED)
     byte diginState = digitalRead(INPUTPIN);
+#else
+    byte diginState = digitalRead(pin);
+#endif
 
     // Set up input capture for next edge.
     if (diginState) 
