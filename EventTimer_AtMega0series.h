@@ -1,4 +1,5 @@
-/* Copyright (c) 2021 Neil McKechnie
+/* Copyright (c) 2024 Heiko Rosemann
+ * Based on EventTimer_AtMega.h (c) 2021 Neil McKechnie
  *
  * This Library is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,12 +17,13 @@
  */
 
 /*
- * EventTimer_AtMega.h
+ * EventTimer_AtMega0series.h
  * 
- *  Timer functions for measuring elapsed time between events.  On the
- *  AtMega328 and AtMega2560 controllers, the functions use the Input Capture
- *  capability of the microcontroller to capture the timer value very precisely
- *  using hardware.
+ *  Timer functions for measuring elapsed time between events.  On the mega0-series,
+ *  the functions use the Input Capture capability of the microcontroller to capture the
+ *  timer value very precisely using hardware.
+ *
+ *  The pin used as input pin can be configured in Config.h
  * 
  *  Since the Timer counter is limited to 16 bits, it will overflow if the interval exceeds 
  *  about 32milliseconds.  To avoid this, we check micros() to determine if pulse 
