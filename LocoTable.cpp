@@ -16,7 +16,7 @@
  */
 #include "LocoTable.h"
 
-LocoTable::LOCO LocoTable::speedTable[MAX_LOCOS];
+LocoTable::LOCO LocoTable::speedTable[MAX_LOCOS] = { {0,0,0,0,0,0} };
 int LocoTable::highestUsedReg = 0;
 
 int LocoTable::lookupSpeedTable(int locoId, bool autoCreate) {
@@ -65,6 +65,7 @@ bool LocoTable::updateLoco(int loco, byte speedCode) {
   // determine speed reg for this loco
   int reg=lookupSpeedTable(loco, false);
   if (reg>=0) {
+    speedTable[reg].speedcounter++;
     if (speedTable[reg].speedCode!=speedCode) {
       speedTable[reg].speedCode = speedCode;
       return true;
@@ -91,14 +92,15 @@ bool LocoTable::updateFunc(int loco, byte func, int shift) {
   } else {
     newfunc = previous = speedTable[reg].functions;
   }
-    
-  if(shift == 0) { // special case for light
+
+  speedTable[reg].funccounter++;    
+
+  if(shift == 1) { // special case for light
     newfunc &= ~1UL;
     newfunc |= ((func & 0B10000) >> 4);
-  } else {
-    newfunc &= ~(0B1111UL << shift);
-    newfunc |=  ((func & 0B1111) << shift);
   }
+  newfunc &= ~(0B1111UL << shift);
+  newfunc |=  ((func & 0B1111) << shift);
 
   if (newfunc != previous) {
     speedTable[reg].functions = newfunc;
@@ -107,3 +109,22 @@ bool LocoTable::updateFunc(int loco, byte func, int shift) {
   return retval;
 }
 
+void LocoTable::dumpTable(Stream *output) {
+  output->print("\n-----------Table---------\n");
+  for (byte reg = 0; reg <= highestUsedReg; reg++) {
+    if (speedTable[reg].loco != 0) {
+      output->print(speedTable[reg].loco);
+      output->print(' ');
+      output->print(speedTable[reg].speedCode);
+      output->print(' ');
+      output->print(speedTable[reg].functions);
+      output->print(" #funcpacks:");
+      output->print(speedTable[reg].funccounter);
+      output->print(" #speedpacks:");
+      output->print(speedTable[reg].speedcounter);
+      speedTable[reg].funccounter = 0;
+      speedTable[reg].speedcounter = 0;
+      output->print('\n');
+    }
+  }
+}

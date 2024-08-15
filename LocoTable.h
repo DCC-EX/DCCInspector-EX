@@ -15,6 +15,7 @@
  * <http://www.gnu.org/licenses/>.
  */
 #include <Arduino.h>
+#include "StringBuilder.h"
 
 #define MAX_LOCOS 128
 
@@ -27,6 +28,7 @@ public:
   static int lookupSpeedTable(int locoId, bool autoCreate);
   static bool updateLoco(int loco, byte speedCode);
   static bool updateFunc(int loco, byte func, int shift);
+  static void dumpTable(Stream *output);
 
 private:
   struct LOCO
@@ -35,6 +37,8 @@ private:
     byte speedCode;
     byte groupFlags;
     unsigned long functions;
+    unsigned int funccounter;
+    unsigned int speedcounter;
   };
   static LOCO speedTable[MAX_LOCOS];
   static int highestUsedReg;

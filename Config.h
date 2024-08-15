@@ -152,6 +152,7 @@
 #define SHOWCPUSTATS    false
 #define SHOWCOMMAND     true
 #define SHOWBINARY      false
+#define SHOWTABLE       false
 
 #if defined(ESP32) || defined(ESP8266) || defined(ESP_PLATFORM)
   #define INTERRUPT_SAFE IRAM_ATTR
