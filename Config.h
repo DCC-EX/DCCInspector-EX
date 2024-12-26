@@ -33,6 +33,8 @@
   #define ARDUINO_UNO_NANO
 #elif defined(ARDUINO_AVR_MEGA2560)
   #define ARDUINO_MEGA
+#elif defined(ARDUINO_ARCH_RP2040)
+  #define RASPBERY_PI_PICO
 #else
   #error "Platform not recognised"
 #endif
@@ -139,7 +141,7 @@
 #endif
 
 // HTTP Server isn't supported on Uno or Nano or Mega
-#if defined(ARDUINO_UNO_NANO) | defined(ARDUINO_MEGA)
+#if defined(ARDUINO_UNO_NANO) | defined(ARDUINO_MEGA) | defined(RASPBERY_PI_PICO)
   #if defined(USE_HTTPSERVER)
     #undef USE_HTTPSERVER
   #endif
