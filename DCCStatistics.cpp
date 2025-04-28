@@ -74,8 +74,12 @@ void DCCStatisticsClass::writeFullStatistics(Statistics &stats,
 
   Serial.print(F("Valid Packets="));
   Serial.print(stats.packetCount);
+  Serial.print(F(", Idles="));
+  Serial.print(stats.idleCount);
   Serial.print(F(", NMRA out of spec="));
   Serial.print(stats.outOfSpecRejectionCount);
+  Serial.print(F(", RCN 5ms errors="));
+  Serial.print(stats.rcn5msFailCount);
   Serial.print(F(", Checksum Errors="));
   Serial.print(stats.checksumError);
   Serial.print(F(", Lost pkts="));

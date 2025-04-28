@@ -51,6 +51,7 @@ typedef struct {
   unsigned int maxInterruptTime=0, minInterruptTime=65535;
   unsigned int max1BitDelta=0, max0BitDelta=0;
   unsigned long glitchCount=0, spareLoopCount=0, innerSpareLoopCount=0;
+  unsigned long rcn5msFailCount=0, idleCount=0;
   unsigned int countByLength[2][maxBitLength-minBitLength+1];
 } Statistics;
 
@@ -78,6 +79,12 @@ public:
   inline void INTERRUPT_SAFE recordOutOfSpecRejection() {
     activeStats.outOfSpecRejectionCount++;
   }
+  inline void INTERRUPT_SAFE recordrcn5msFailure() {
+    activeStats.rcn5msFailCount++;
+  }
+  inline void INTERRUPT_SAFE recordIdlePacket() {
+    activeStats.idleCount++;
+  }
   inline void INTERRUPT_SAFE recordInterruptHandlerTime(unsigned int interruptDuration) {
     if (interruptDuration > activeStats.maxInterruptTime) activeStats.maxInterruptTime = interruptDuration;
     if (interruptDuration < activeStats.minInterruptTime) activeStats.minInterruptTime = interruptDuration;
@@ -93,7 +100,8 @@ public:
   inline bool faultPresent() {
     if (activeStats.glitchCount > 0 || activeStats.checksumError > 0 || 
         activeStats.countLongPackets > 0 || activeStats.countLostPackets > 0
-        || activeStats.outOfSpecRejectionCount > 0)
+        || activeStats.outOfSpecRejectionCount > 0
+        || activeStats.rcn5msFailCount > 0)
         return true;
     else
         return false;

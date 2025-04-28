@@ -689,10 +689,25 @@ bool processDCC(Print &output) {
 #ifdef LEDPIN_DECODING
       digitalWrite(LEDPIN_DECODING, 1);
 #endif
+   static  unsigned int lastLocoPacket=0;
+   if (dccPacket[inputPacket][1] == 0B11111111) {
+      DCCStatistics.recordIdlePacket();
+      lastLocoPacket=0;
+    }
+    else {
+      // check for repeated loco packet without intervening idle or other packet
+      unsigned int loco=0;
+      if ((dccPacket[inputPacket][1] & 0x80)  == 0x00 ) loco=dccPacket[inputPacket][1]; // short loco address
+      else if ((dccPacket[inputPacket][1] & 0xc0)  == 0xC0 ) 
+                 loco=((dccPacket[inputPacket][1] & 0x3F) <<8)  | dccPacket[inputPacket][2]; // long loco address
+      if (loco && (loco==lastLocoPacket)) DCCStatistics.recordrcn5msFailure();
+      lastLocoPacket=loco;
+    }
 
       // Hooray - we've got a packet to decode, with no errors!
       DCCStatistics.recordPacket();
-
+      
+      
       // Generate a cyclic hash based on the packet contents for checking if
       // we've seen a similar packet before.
       isDifferentPacket = true;

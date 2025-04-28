@@ -420,11 +420,23 @@ void HttpManagerClass::writeHtmlStatistics(Statistics &lastStats)
   sbHtml.print(cellDiv);
   sbHtml.print(lastStats.packetCount);
   sbHtml.print(rowEnd);
+  
+  sbHtml.print(rowStart);
+  sbHtml.print(F("Idle Packets Received"));
+  sbHtml.print(cellDiv);
+  sbHtml.print(lastStats.packetCount);
+  sbHtml.print(rowEnd);
 
   sbHtml.print(rowStart);
   sbHtml.print(F("NMRA out of spec packets"));
   sbHtml.print(cellDiv);
   sbHtml.print(lastStats.outOfSpecRejectionCount);
+  sbHtml.print(rowEnd);
+
+  sbHtml.print(rowStart);
+  sbHtml.print(F("RCN 5ms errors"));
+  sbHtml.print(cellDiv);
+  sbHtml.print(lastStats.rcn5msFailCount);
   sbHtml.print(rowEnd);
 
   sbHtml.print(rowStart);

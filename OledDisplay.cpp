@@ -145,6 +145,9 @@ void OledDisplayClass::writeShortStatistics(Statistics &lastStats) {
         
         sbOled.print(F("NMRA Reject: "));
         sbOled.println(lastStats.outOfSpecRejectionCount);
+        
+        sbOled.print(F("RCN 5ms Fails: "));
+        sbOled.println(lastStats.rcn5msFailCount);
         sbOled.println(F("--"));
         
     } else {
