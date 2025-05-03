@@ -139,7 +139,7 @@
 #endif
 
 // HTTP Server isn't supported on Uno or Nano or Mega
-#if defined(ARDUINO_UNO_NANO) | defined(ARDUINO_MEGA)
+#if defined(ARDUINO_UNO_NANO) || defined(ARDUINO_MEGA)
   #if defined(USE_HTTPSERVER)
     #undef USE_HTTPSERVER
   #endif
