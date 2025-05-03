@@ -33,6 +33,8 @@
   #define ARDUINO_UNO_NANO
 #elif defined(ARDUINO_AVR_MEGA2560)
   #define ARDUINO_MEGA
+#elif defined(NANO_EVERY_PINOUT)
+  #define ARDUINO_NANO_EVERY
 #else
   #error "Platform not recognised"
 #endif
@@ -50,6 +52,7 @@
 // Works on Arduino Uno (Timer1/pin D8)
 //          Arduino Nano (Timer1/pin D8)
 //          Arduino Mega (Timer4/pin D49)
+//          Arduino Nano Every (Timer B2/any pin)
 // If we don't use this, then the selected input pin must support change interrupt 
 // (defaults to pin D2 on Uno, Nano and Mega, GPIO2 on ESP8266 and GPIO5 on ESP32.
 #define USETIMER 
@@ -63,7 +66,7 @@
 //    ESP8266:                       2
 //    Other:                         2
 #if defined(USETIMER)
-  #if defined(ARDUINO_UNO_NANO)
+  #if defined(ARDUINO_UNO_NANO) || defined(ARDUINO_NANO_EVERY)
     #define INPUTPIN 8
   #elif defined(ARDUINO_MEGA)
     #define INPUTPIN 49
@@ -131,15 +134,15 @@
 // through this name with a ".local" suffix (e.g. http://DccInspector.local/).
 #define DNSNAME "DccInspector"
 
-// OLED isn't supported on Uno or Nano
-#if defined(ARDUINO_UNO_NANO)
+// OLED isn't supported on Uno or Nano or Nano Every
+#if defined(ARDUINO_UNO_NANO) || defined(ARDUINO_NANO_EVERY)
   #if defined(USE_OLED)
     #undef USE_OLED
   #endif
 #endif
 
-// HTTP Server isn't supported on Uno or Nano or Mega
-#if defined(ARDUINO_UNO_NANO) | defined(ARDUINO_MEGA)
+// HTTP Server isn't supported on Uno or Nano or Mega or Nano Every
+#if defined(ARDUINO_UNO_NANO) || defined(ARDUINO_MEGA) || defined(ARDUINO_NANO_EVERY)
   #if defined(USE_HTTPSERVER)
     #undef USE_HTTPSERVER
   #endif

@@ -18,6 +18,7 @@
 
 ///////////////////////////////////////////////////////
 //
+// Add support for Arduino Nano Every with MegaCoreX: newHeiko Apr 2024
 // Add buttons to web page for modifying options: NMcK Apr 2021
 // Regroup functions into separate classes: NMcK Jan 2021
 // Move configuration items to Config.h: NMcK Jan 2021
@@ -34,9 +35,9 @@
 // Removed use of AVR timer interrupts: NMcK June 2020
 // DCC packet analyze: Ruud Boer, October 2015
 //
-// The DCC signal is detected on Arduino digital pin 8 (ICP1 on Uno/Nano),
-// or pin 49 (ICP4 on Mega), or pin GPIO2 on ESP8266/ESP32.  This causes an interrupt,
-// and in the interrupt response code the time between interrupts is measured.
+// The DCC signal is detected on Arduino digital pin 8 (ICP1 on Uno/Nano), or pin 49
+// (ICP4 on Mega), or pin GPIO2 on ESP8266/ESP32, or any pin on Nano Every. This causes an
+// interrupt, and in the interrupt response code the time between interrupts is measured.
 //
 // Use an opto-isolator between the track signal (~30V p-p) and the
 // digital input (0 to 5V or 0 to 3.3V) to prevent burn-out.
@@ -124,6 +125,10 @@
 #include <DIO2.h>
 #define digitalWrite(pin, state) digitalWrite2(pin, state)
 #define digitalRead(pin) digitalRead2(pin)
+#elif defined(USE_DIO2) && defined(ARDUINO_NANO_EVERY)
+#define digitalWrite(pin, state) digitalWriteFast(pin, state)
+#define digitalRead(pin) digitalReadFast(pin)
+#define GPIO_PREFER_SPEED
 #endif
 
 #ifdef USETIMER
